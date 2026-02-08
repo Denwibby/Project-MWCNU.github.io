@@ -53,3 +53,14 @@ body {
     text-align: center;
     padding: 20px 0;
 }
+
+/* Contact Section Responsive */
+@media (max-width: 768px) {
+    section[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+    
+    section[style*="grid-template-columns: 1fr 1fr"] > div:last-child {
+        height: 300px !important;
+    }
+}
