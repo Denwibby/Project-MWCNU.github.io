@@ -78,3 +78,41 @@ function createRipple(event) {
 document.querySelectorAll('.button').forEach(button => {
     button.addEventListener('click', createRipple);
 });
+
+// Dropdown menu timing fix - mencegah dropdown menutup terlalu cepat
+let dropdownCloseTimer = null;
+
+document.querySelectorAll('.main-nav .dropdown').forEach(dropdown => {
+    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+    
+    dropdown.addEventListener('mouseenter', function() {
+        clearTimeout(dropdownCloseTimer);
+        if (dropdownMenu) {
+            dropdownMenu.style.display = 'block';
+        }
+    });
+    
+    dropdown.addEventListener('mouseleave', function() {
+        clearTimeout(dropdownCloseTimer);
+        dropdownCloseTimer = setTimeout(() => {
+            if (dropdownMenu) {
+                dropdownMenu.style.display = 'none';
+            }
+        }, 300); // Delay 300ms sebelum menutup
+    });
+    
+    // Jaga dropdown tetap terbuka saat mouse masuk ke menu
+    if (dropdownMenu) {
+        dropdownMenu.addEventListener('mouseenter', function() {
+            clearTimeout(dropdownCloseTimer);
+            this.style.display = 'block';
+        });
+        
+        dropdownMenu.addEventListener('mouseleave', function() {
+            clearTimeout(dropdownCloseTimer);
+            dropdownCloseTimer = setTimeout(() => {
+                this.style.display = 'none';
+            }, 300);
+        });
+    }
+});

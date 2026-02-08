@@ -203,10 +203,7 @@ body {
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     min-width: 200px;
-}
-
-.main-nav .dropdown:hover .dropdown-menu {
-    display: block;
+    z-index: 1000;
 }
 
 .main-nav .dropdown-menu li {
@@ -620,6 +617,7 @@ nav a.active {
     overflow: hidden;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     margin-bottom: 60px;
 }
 
@@ -637,10 +635,7 @@ nav a.active {
 .hero-content {
     position: relative;
     z-index: 2;
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 60px 40px;
-    width: 100%;
     max-width: 600px;
     animation: slideInLeft 0.8s ease-out;
 }

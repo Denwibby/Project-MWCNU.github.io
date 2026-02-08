@@ -3,6 +3,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const nav = document.querySelector('nav');
     const navUl = document.querySelector('nav ul');
     
+    // Logo click handler - redirect to home
+    const logo = document.querySelector('.logo');
+    if (logo) {
+        logo.style.cursor = 'pointer';
+        logo.addEventListener('click', function() {
+            window.location.href = window.location.pathname.includes('pages/') 
+                ? '../index.html' 
+                : 'index.html';
+        });
+    }
+    
     // Create hamburger menu for mobile
     if (window.innerWidth < 768) {
         createMobileMenu();
