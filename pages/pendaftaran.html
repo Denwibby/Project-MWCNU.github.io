@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulir Pendaftaran - Majelis Wakil Cabang Nahdlatul Ulama</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .form-container {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-title {
+            text-align: center;
+            color: #2e7d32;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .form-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: 'Arial', sans-serif;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .form-section-title {
+            color: #4CAF50;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        .requirements-list {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .requirements-list h4 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+
+        .requirements-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .requirements-list li {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .btn-submit {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            background-color: #45a049;
+        }
+
+        .btn-submit:active {
+            background-color: #3d8b40;
+        }
+
+        .success-message {
+            display: none;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            display: none;
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                margin: 20px 10px;
+                padding: 20px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-title {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+        <div class="top-info-container">
+            <div class="top-info-item">
+                <i class="fas fa-map-pin"></i>
+                <span>Jakarta - Indonesia</span>
+            </div>
+            <div class="top-info-item">
+                <i class="fas fa-clock"></i>
+                <span>Sunday 8.00 - 10.00 am</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <h1><i class="fas fa-mosque fa-icon-green"></i> MWC NU</h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li class="dropdown">
+                        <a href="#">Profil <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="bp3nu-profile.html">Profil BP3NU</a></li>
+                            <li><a href="../index.html#visi-misi">Visi & Misi</a></li>
+                            <li><a href="../index.html#keunggulan">Keunggulan Kami</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="../index.html#blog">Blog</a></li>
+                    <li><a href="../index.html#galeri">Galeri</a></li>
+                    <li><a href="contact.html">Kontak</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta">
+                <a href="tel:+62812800827" class="cta-button">
+                    <i class="fas fa-phone"></i> +62 812 8008 0275
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="form-container">
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <h2 class="form-title" id="formTitle">Formulir Pendaftaran</h2>
+        <p class="form-subtitle" id="formSubtitle">Silakan isi semua data dengan lengkap</p>
+
+        <div id="requirementsContainer"></div>
+
+        <form id="registrationForm">
+            <!-- Data Pribadi Siswa -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="far fa-rectangle-list fa-icon-green"></i> Data Pribadi Siswa</div>
+                
+                <div class="form-group">
+                    <label for="namaLengkap">Nama Lengkap *</label>
+                    <input type="text" id="namaLengkap" name="namaLengkap" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tempatLahir">Tempat Lahir *</label>
+                        <input type="text" id="tempatLahir" name="tempatLahir" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggalLahir">Tanggal Lahir *</label>
+                        <input type="date" id="tanggalLahir" name="tanggalLahir" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="jenisKelamin">Jenis Kelamin *</label>
+                        <select id="jenisKelamin" name="jenisKelamin" required>
+                            <option value="">-- Pilih --</option>
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="agama">Agama *</label>
+                        <select id="agama" name="agama" required>
+                            <option value="">-- Pilih --</option>
+                            <option value="Islam">Islam</option>
+                            <option value="Kristen">Kristen</option>
+                            <option value="Katholik">Katholik</option>
+                            <option value="Hindu">Hindu</option>
+                            <option value="Budha">Budha</option>
+                            <option value="Konghucu">Konghucu</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="alamat">Alamat Lengkap *</label>
+                    <textarea id="alamat" name="alamat" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="noIdentitas">No. Kartu Identitas (KTP/Akta/KKIA) *</label>
+                        <input type="text" id="noIdentitas" name="noIdentitas" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="noTelepon">No. Telepon *</label>
+                        <input type="tel" id="noTelepon" name="noTelepon" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Orang Tua/Wali -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-people-group fa-icon-green"></i> Data Orang Tua/Wali</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="namaAyah">Nama Ayah *</label>
+                        <input type="text" id="namaAyah" name="namaAyah" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="namaIbu">Nama Ibu *</label>
+                        <input type="text" id="namaIbu" name="namaIbu" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pekerjaanAyah">Pekerjaan Ayah</label>
+                        <input type="text" id="pekerjaanAyah" name="pekerjaanAyah">
+                    </div>
+                    <div class="form-group">
+                        <label for="pekerjaanIbu">Pekerjaan Ibu</label>
+                        <input type="text" id="pekerjaanIbu" name="pekerjaanIbu">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="noTeleponOrangTua">No. Telepon Orang Tua *</label>
+                        <input type="tel" id="noTeleponOrangTua" name="noTeleponOrangTua" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emailOrangTua">Email Orang Tua</label>
+                        <input type="email" id="emailOrangTua" name="emailOrangTua">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informasi Tambahan -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-circle-info fa-icon-green"></i> Informasi Tambahan</div>
+                
+                <div class="form-group">
+                    <label for="nomorRapor">Nomor Ujian/Rapor Sebelumnya (jika ada)</label>
+                    <input type="text" id="nomorRapor" name="nomorRapor">
+                </div>
+
+                <div class="form-group">
+                    <label for="prestasi">Prestasi Akademik/Non-Akademik (jika ada)</label>
+                    <textarea id="prestasi" name="prestasi"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="alasanMemilih">Alasan Memilih Sekolah Kami</label>
+                    <textarea id="alasanMemilih" name="alasanMemilih"></textarea>
+                </div>
+            </div>
+
+            <!-- Persetujuan -->
+            <div class="form-section">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="setujuKondisi" name="setujuKondisi" required>
+                    <label for="setujuKondisi">Saya menyetujui syarat dan ketentuan pendaftaran *</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="setujuPrivasi" name="setujuPrivasi" required>
+                    <label for="setujuPrivasi">Saya menyetujui kebijakan privasi dan penggunaan data pribadi *</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Kirim Formulir Pendaftaran</button>
+        </form>
+    </div>
+
+    <footer>
+        <p>&copy; 2023 Majelis Wakil Cabang Nahdlatul Ulama. All rights reserved.</p>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script>
+        // School data
+        const schoolData = {
+            tk: {
+                name: 'Taman Kanak-Kanak (TK)',
+                title: 'Formulir Pendaftaran Taman Kanak-Kanak (TK)',
+                requirements: [
+                    'Usia 3-6 tahun',
+                    'Fotokopi akta kelahiran',
+                    'Pas foto ukuran 3x4 (2 lembar)',
+                    'Surat keterangan sehat dari dokter'
+                ],
+                hideFields: ['nomorRapor', 'prestasi']
+            },
+            sd: {
+                name: 'Sekolah Dasar Maarif (SD)',
+                title: 'Formulir Pendaftaran Sekolah Dasar Maarif (SD)',
+                requirements: [
+                    'Lulusan TK/RA',
+                    'Usia 6-7 tahun',
+                    'Fotokopi akta kelahiran',
+                    'Pas foto ukuran 3x4 (2 lembar)',
+                    'Rapor TK',
+                    'Surat keterangan sehat'
+                ],
+                hideFields: []
+            },
+            mts: {
+                name: 'Madrasah Tsanawiyah (MTs)',
+                title: 'Formulir Pendaftaran Madrasah Tsanawiyah (MTs)',
+                requirements: [
+                    'Lulusan SD/MI',
+                    'Usia 12-13 tahun',
+                    'Fotokopi ijazah SD/MI',
+                    'Fotokopi akta kelahiran',
+                    'Pas foto ukuran 3x4 (2 lembar)',
+                    'Rapor kelas 5-6',
+                    'Surat keterangan sehat'
+                ],
+                hideFields: []
+            },
+            smk: {
+                name: 'Sekolah Menengah Kejuruan (SMK)',
+                title: 'Formulir Pendaftaran Sekolah Menengah Kejuruan (SMK)',
+                requirements: [
+                    'Lulusan SMP/MTs',
+                    'Usia 12-18 tahun',
+                    'Fotokopi ijazah SMP/MTs',
+                    'Fotokopi akta kelahiran',
+                    'Pas foto ukuran 3x4 (2 lembar)',
+                    'Rapor SMP/MTs',
+                    'Surat keterangan sehat'
+                ],
+                hideFields: []
+            }
+        };
+
+        // Get jenjang parameter from URL
+        function getJenjang() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('jenjang') || 'tk';
+        }
+
+        // Initialize form based on school
+        function initializeForm() {
+            const jenjang = getJenjang();
+            const school = schoolData[jenjang];
+
+            if (!school) {
+                document.getElementById('formTitle').textContent = 'Data Sekolah Tidak Ditemukan';
+                return;
+            }
+
+            // Update titles
+            document.getElementById('formTitle').textContent = school.title;
+            document.title = school.title + ' - MWC NU';
+
+            // Create requirements container
+            const reqContainer = document.getElementById('requirementsContainer');
+            let reqHTML = `
+                <div class="requirements-list">
+                    <h4><i class="far fa-rectangle-list fa-icon-green"></i> Persyaratan Pendaftaran ${school.name}</h4>
+                    <ul>
+            `;
+            
+            school.requirements.forEach(req => {
+                reqHTML += `<li>${req}</li>`;
+            });
+            
+            reqHTML += `
+                    </ul>
+                </div>
+            `;
+            
+            reqContainer.innerHTML = reqHTML;
+
+            // Hide non-applicable fields
+            school.hideFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.parentElement.style.display = 'none';
+                }
+            });
+
+            // Store jenjang for form submission
+            document.getElementById('registrationForm').dataset.jenjang = jenjang;
+        }
+
+        // Handle form submission
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const jenjang = this.dataset.jenjang;
+            const school = schoolData[jenjang];
+
+            // Collect form data
+            const formData = {
+                jenjang: jenjang,
+                sekolah: school.name,
+                namaLengkap: document.getElementById('namaLengkap').value,
+                tempatLahir: document.getElementById('tempatLahir').value,
+                tanggalLahir: document.getElementById('tanggalLahir').value,
+                jenisKelamin: document.getElementById('jenisKelamin').value,
+                agama: document.getElementById('agama').value,
+                alamat: document.getElementById('alamat').value,
+                noIdentitas: document.getElementById('noIdentitas').value,
+                noTelepon: document.getElementById('noTelepon').value,
+                namaAyah: document.getElementById('namaAyah').value,
+                namaIbu: document.getElementById('namaIbu').value,
+                pekerjaanAyah: document.getElementById('pekerjaanAyah').value,
+                pekerjaanIbu: document.getElementById('pekerjaanIbu').value,
+                noTeleponOrangTua: document.getElementById('noTeleponOrangTua').value,
+                emailOrangTua: document.getElementById('emailOrangTua').value,
+                nomorRapor: document.getElementById('nomorRapor').value,
+                prestasi: document.getElementById('prestasi').value,
+                alasanMemilih: document.getElementById('alasanMemilih').value,
+                tanggalPendaftaran: new Date().toLocaleString('id-ID')
+            };
+
+            // Log form data (in production, send to backend)
+            console.log('Form Data:', formData);
+
+            // Save to localStorage for demo
+            let allRegistrations = JSON.parse(localStorage.getItem('pendaftaran') || '[]');
+            allRegistrations.push(formData);
+            localStorage.setItem('pendaftaran', JSON.stringify(allRegistrations));
+
+            // Show success message
+            const successMsg = document.getElementById('successMessage');
+            successMsg.textContent = `<i class="fas fa-circle-check" style="color: #155724; margin-right: 8px;"></i> Pendaftaran berhasil dikirim! Terima kasih telah mendaftar di ${school.name}. Data Anda telah kami terima dan akan segera kami proses.`;
+            successMsg.style.display = 'block';
+
+            // Optional: Send WhatsApp notification
+            const whatsappMessage = `*Pendaftaran Baru - ${school.name}*%0A%0ANama: ${formData.namaLengkap}%0AJenjang: ${school.name}%0ATanggal: ${formData.tanggalPendaftaran}`;
+            console.log('WhatsApp notification (update with your number):', whatsappMessage);
+
+            // Reset form
+            this.reset();
+            window.scrollTo(0, 0);
+
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 5000);
+        });
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', initializeForm);
+    </script>
+</body>
+</html>

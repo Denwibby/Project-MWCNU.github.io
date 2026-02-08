@@ -1,0 +1,25 @@
+{
+  "name": "nu-school-website",
+  "version": "1.0.0",
+  "description": "Website for Majelis Wakil Cabang Nahdlatul Ulama, featuring sections for TK, SD Maarif, MTs, and SMK.",
+  "main": "src/index.html",
+  "scripts": {
+    "start": "live-server src",
+    "build": "echo 'Build process not defined yet.'"
+  },
+  "keywords": [
+    "education",
+    "school",
+    "nahdlatul-ulama",
+    "tk",
+    "sd-maarif",
+    "mts",
+    "smk"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.1"
+  }
+}

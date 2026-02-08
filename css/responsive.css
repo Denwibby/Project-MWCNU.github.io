@@ -1,0 +1,55 @@
+/* Responsive styles for the Majelis Wakil Cabang Nahdlatul Ulama school website */
+
+/* General styles for mobile devices */
+body {
+    font-size: 16px;
+    padding: 0;
+    margin: 0;
+}
+
+/* Container adjustments */
+.container {
+    width: 90%;
+    margin: auto;
+}
+
+/* Navigation adjustments */
+.navbar {
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar a {
+    padding: 10px;
+    text-align: center;
+}
+
+/* Responsive grid for sections */
+.section {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.section .column {
+    flex: 1 1 100%; /* Default to full width */
+}
+
+/* Media queries for larger screens */
+@media (min-width: 768px) {
+    .section .column {
+        flex: 1 1 48%; /* Two columns */
+        margin: 1%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .section .column {
+        flex: 1 1 30%; /* Three columns */
+    }
+}
+
+/* Footer adjustments */
+.footer {
+    text-align: center;
+    padding: 20px 0;
+}
