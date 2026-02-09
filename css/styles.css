@@ -1232,7 +1232,7 @@ h4 .fa-icon-green {
         position: static;
         display: none;
         max-width: none;
-        background: rgba(46, 125, 50, 0.95);
+        background: #fff;
         padding: 8px 0;
     }
 }
