@@ -3,8 +3,6 @@
  * Responsive menu system for MWCNU website
  */
 
-console.log('navigation.js loading...');
-
 // Wait for DOM to load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initNav);
@@ -13,35 +11,13 @@ if (document.readyState === 'loading') {
 }
 
 function initNav() {
-    console.log('=== Navigation Initialization Started ===');
-    console.log('DOM Ready. Document state:', document.readyState);
-    console.log('Document body:', document.body ? 'Present' : 'Missing');
-    console.log('Main header:', document.querySelector('.main-header') ? 'Found' : 'Missing');
-    console.log('Main nav:', document.querySelector('.main-nav') ? 'Found' : 'Missing');
-    console.log('Hamburger menu:', document.getElementById('hamburgerMenu') ? 'Found' : 'Missing');
-    
-    console.log('STEP 1: Calling initMobileMenu()');
     initMobileMenu();
-    
-    console.log('STEP 2: Calling setupDropdowns()');
     setupDropdowns();
-    
-    console.log('STEP 3: Calling highlightActivePage()');
     highlightActivePage();
-    
-    console.log('STEP 4: Calling setupLogoClick()');
     setupLogoClick();
-    
-    console.log('STEP 5: Calling setupSmoothScroll()');
     setupSmoothScroll();
-    
-    console.log('STEP 6: Calling setupTabFunctionality()');
     setupTabFunctionality();
-    
-    console.log('STEP 7: Calling setupQRModal()');
     setupQRModal();
-    
-    console.log('=== Navigation Initialization Complete ===');
 }
 
 /**
@@ -52,28 +28,57 @@ function initMobileMenu() {
     const mainNav = document.querySelector('.main-nav');
 
     if (!hamburger || !mainNav) {
-        console.warn('Hamburger or mainNav not found');
         return;
     }
+
+    // Create backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'nav-backdrop';
+    backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 997;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    `;
+    document.body.appendChild(backdrop);
 
     // Toggle menu on hamburger click
     hamburger.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const isActive = mainNav.classList.contains('active');
-        
+
         if (isActive) {
             mainNav.classList.remove('active');
             hamburger.classList.remove('active');
+            backdrop.style.opacity = '0';
+            backdrop.style.visibility = 'hidden';
             document.body.style.overflow = '';
         } else {
             mainNav.classList.add('active');
             hamburger.classList.add('active');
+            backdrop.style.opacity = '1';
+            backdrop.style.visibility = 'visible';
             document.body.style.overflow = 'hidden';
         }
-        
+
         console.log('Menu toggled:', !isActive);
+    });
+
+    // Close on backdrop click
+    backdrop.addEventListener('click', function() {
+        mainNav.classList.remove('active');
+        hamburger.classList.remove('active');
+        backdrop.style.opacity = '0';
+        backdrop.style.visibility = 'hidden';
+        document.body.style.overflow = '';
     });
 
     // Close menu when clicking on a nav link
@@ -136,7 +141,6 @@ function setupDropdowns() {
             const menu = dropdown.querySelector('.dropdown-menu');
 
             if (!toggle || !menu) {
-                console.error(`❌ Dropdown ${index} invalid - toggle: ${!!toggle}, menu: ${!!menu}`);
                 return;
             }
 
@@ -204,7 +208,7 @@ function setupDropdowns() {
         
         console.log('✓ Dropdowns setup complete');
     } catch (err) {
-        console.error('❌ ERROR in setupDropdowns:', err);
+        // Handle error silently
     }
 }
 
