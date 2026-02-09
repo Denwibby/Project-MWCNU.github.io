@@ -1,176 +1,361 @@
-// Mobile menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const nav = document.querySelector('nav');
-    const navUl = document.querySelector('nav ul');
-    
-    // Logo click handler - redirect to home
-    const logo = document.querySelector('.logo');
-    if (logo) {
-        logo.style.cursor = 'pointer';
-        logo.addEventListener('click', function() {
-            window.location.href = window.location.pathname.includes('pages/') 
-                ? '../index.html' 
-                : 'index.html';
-        });
-    }
-    
-    // Create hamburger menu for mobile
-    if (window.innerWidth < 768) {
-        createMobileMenu();
-    }
+/**
+ * Mobile Navigation & Menu Handling
+ * Responsive menu system for MWCNU website
+ */
 
-    window.addEventListener('resize', () => {
-        if (window.innerWidth >= 768) {
-            removeMobileMenu();
-        } else if (!document.querySelector('.nav-toggle')) {
-            createMobileMenu();
-        }
-    });
+console.log('navigation.js loading...');
 
-    // Highlight active page
+// Wait for DOM to load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNav);
+} else {
+    initNav();
+}
+
+function initNav() {
+    console.log('=== Navigation Initialization Started ===');
+    console.log('DOM Ready. Document state:', document.readyState);
+    console.log('Document body:', document.body ? 'Present' : 'Missing');
+    console.log('Main header:', document.querySelector('.main-header') ? 'Found' : 'Missing');
+    console.log('Main nav:', document.querySelector('.main-nav') ? 'Found' : 'Missing');
+    console.log('Hamburger menu:', document.getElementById('hamburgerMenu') ? 'Found' : 'Missing');
+    
+    console.log('STEP 1: Calling initMobileMenu()');
+    initMobileMenu();
+    
+    console.log('STEP 2: Calling setupDropdowns()');
+    setupDropdowns();
+    
+    console.log('STEP 3: Calling highlightActivePage()');
     highlightActivePage();
+    
+    console.log('STEP 4: Calling setupLogoClick()');
+    setupLogoClick();
+    
+    console.log('STEP 5: Calling setupSmoothScroll()');
+    setupSmoothScroll();
+    
+    console.log('STEP 6: Calling setupTabFunctionality()');
+    setupTabFunctionality();
+    
+    console.log('STEP 7: Calling setupQRModal()');
+    setupQRModal();
+    
+    console.log('=== Navigation Initialization Complete ===');
+}
 
-    // Smooth scroll for navigation links
-    document.querySelectorAll('nav a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            if (this.getAttribute('href').startsWith('#')) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            }
-        });
-    });
-});
+/**
+ * Initialize mobile menu (hamburger)
+ */
+function initMobileMenu() {
+    const hamburger = document.getElementById('hamburgerMenu');
+    const mainNav = document.querySelector('.main-nav');
 
-// QR Modal handler: open modal and set QR image src based on data-jenjang
-document.addEventListener('click', function(e) {
-    // Open modal when clicking the trigger
-    const openBtn = e.target.closest && e.target.closest('.open-qr-modal');
-    if (openBtn) {
-        const jenjang = openBtn.dataset.jenjang || 'tk';
-        const modal = document.querySelector('.qr-modal');
-        if (!modal) return;
-        const img = modal.querySelector('#qrImage');
-        const title = modal.querySelector('h3');
-        const qrData = `pendaftaran.html?jenjang=${encodeURIComponent(jenjang)}`;
-        const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
-        if (img) img.src = qrSrc;
-        if (title) title.textContent = 'Scan QR Code untuk mendaftar - ' + (jenjang || '').toUpperCase();
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+    if (!hamburger || !mainNav) {
+        console.warn('Hamburger or mainNav not found');
         return;
     }
 
-    // Close modal when clicking close button or overlay
-    if (e.target.matches('.qr-modal-close') || e.target.matches('.qr-modal-overlay')) {
-        const modal = document.querySelector('.qr-modal');
-        if (!modal) return;
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-        // clear image src to stop any caching/loading
-        const img = modal.querySelector('#qrImage');
-        if (img) img.src = '';
-    }
-});
+    // Toggle menu on hamburger click
+    hamburger.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isActive = mainNav.classList.contains('active');
+        
+        if (isActive) {
+            mainNav.classList.remove('active');
+            hamburger.classList.remove('active');
+            document.body.style.overflow = '';
+        } else {
+            mainNav.classList.add('active');
+            hamburger.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        console.log('Menu toggled:', !isActive);
+    });
 
-function createMobileMenu() {
-    const nav = document.querySelector('nav');
-    const navUl = document.querySelector('nav ul');
+    // Close menu when clicking on a nav link
+    const navLinks = mainNav.querySelectorAll('a:not(.dropdown-toggle)');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            mainNav.classList.remove('active');
+            hamburger.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.main-nav') && !e.target.closest('.hamburger-menu')) {
+            mainNav.classList.remove('active');
+            hamburger.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Reset menu on window resize to tablet+
+    window.addEventListener('resize', debounce(function() {
+        if (window.innerWidth >= 768) {
+            mainNav.classList.remove('active');
+            hamburger.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }, 250));
+}
+
+/**
+ * Setup dropdown menus
+ */
+function setupDropdowns() {
+    try {
+        console.log('=== Setting up dropdowns ===');
+        const dropdowns = document.querySelectorAll('.dropdown');
+        console.log('✓ Found ' + dropdowns.length + ' dropdowns');
+        
+        if (dropdowns.length === 0) {
+            console.error('ERROR: No dropdowns found!');
+            return;
+        }
+        
+        // Log each dropdown structure
+        dropdowns.forEach((dropdown, idx) => {
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            
+            console.log(`  Dropdown #${idx}:`, {
+                toggle: toggle ? toggle.textContent.trim().substring(0, 30) : '❌ NO TOGGLE',
+                menu: menu ? `✓ ${menu.children.length} items` : '❌ NO MENU',
+                html: dropdown.innerHTML.substring(0, 100)
+            });
+        });
+
+        dropdowns.forEach((dropdown, index) => {
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            const menu = dropdown.querySelector('.dropdown-menu');
+
+            if (!toggle || !menu) {
+                console.error(`❌ Dropdown ${index} invalid - toggle: ${!!toggle}, menu: ${!!menu}`);
+                return;
+            }
+
+            // Direct click on toggle
+            toggle.addEventListener('click', function(e) {
+                console.log(`▶ Click on "${toggle.textContent.trim().substring(0, 20)}" - screen width: ${window.innerWidth}`);
+                if (window.innerWidth < 768) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('  → Mobile mode, toggling dropdown');
+                    handleDropdownToggle(dropdown, menu);
+                } else {
+                    console.log('  → Desktop mode, ignoring');
+                }
+            });
+            
+            // Click anywhere on dropdown li
+            dropdown.addEventListener('click', function(e) {
+                const clickedToggle = e.target.closest('.dropdown-toggle');
+                if (clickedToggle && window.innerWidth < 768) {
+                    console.log('▶ Dropdown click delegation triggered');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDropdownToggle(dropdown, menu);
+                }
+            });
+
+            // Desktop: hover
+            if (window.innerWidth >= 768) {
+                dropdown.addEventListener('mouseenter', () => {
+                    menu.classList.add('active');
+                    dropdown.classList.add('active');
+                });
+
+                dropdown.addEventListener('mouseleave', () => {
+                    menu.classList.remove('active');
+                    dropdown.classList.remove('active');
+                });
+            }
+        });
+
+        // Close all dropdowns when clicking menu items
+        const menuLinks = document.querySelectorAll('.dropdown-menu a');
+        console.log('✓ Found ' + menuLinks.length + ' menu links');
+        
+        menuLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                console.log('▶ Menu link clicked:', link.textContent.trim());
+                
+                document.querySelectorAll('.dropdown').forEach(d => {
+                    d.classList.remove('active');
+                    const m = d.querySelector('.dropdown-menu');
+                    if (m) m.classList.remove('active');
+                });
+                
+                if (window.innerWidth < 768) {
+                    const mainNav = document.querySelector('.main-nav');
+                    const hamburger = document.getElementById('hamburgerMenu');
+                    if (mainNav) mainNav.classList.remove('active');
+                    if (hamburger) hamburger.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+        
+        console.log('✓ Dropdowns setup complete');
+    } catch (err) {
+        console.error('❌ ERROR in setupDropdowns:', err);
+    }
+}
+
+/**
+ * Helper to handle dropdown toggle
+ */
+function handleDropdownToggle(dropdown, menu) {
+    console.log('┌─ Dropdown toggle handler');
+    console.log('  Current classList.toggle state:');
+    console.log('    dropdown.classList:', Array.from(dropdown.classList));
+    console.log('    menu.classList:', Array.from(menu.classList));
     
-    const toggle = document.createElement('div');
-    toggle.className = 'nav-toggle';
-    toggle.innerHTML = '☰';
-    toggle.style.display = 'block';
-    toggle.style.cursor = 'pointer';
-    toggle.style.fontSize = '24px';
-    toggle.style.color = 'white';
-    toggle.style.padding = '10px';
+    // Close other dropdowns
+    const others = document.querySelectorAll('.dropdown.active');
+    if (others.length > 0) {
+        others.forEach(other => {
+            if (other !== dropdown) {
+                console.log('  Closing sibling dropdown');
+                other.classList.remove('active');
+                const m = other.querySelector('.dropdown-menu');
+                if (m) m.classList.remove('active');
+            }
+        });
+    }
     
-    nav.insertBefore(toggle, navUl);
-    navUl.classList.add('nav-menu');
+    // Toggle current
+    const wasActive = dropdown.classList.contains('active');
+    console.log('  Will toggle: ' + (wasActive ? 'CLOSE' : 'OPEN'));
     
-    toggle.addEventListener('click', () => {
-        navUl.classList.toggle('active');
-        toggle.textContent = navUl.classList.contains('active') ? '✕' : '☰';
+    dropdown.classList.toggle('active');
+    menu.classList.toggle('active');
+    
+    console.log('  After toggle:');
+    console.log('    dropdown.active:', dropdown.classList.contains('active'));
+    console.log('    menu.active:', menu.classList.contains('active'));
+    console.log('    dropdown.classList:', Array.from(dropdown.classList));
+    console.log('    menu.classList:', Array.from(menu.classList));
+    console.log('    menu.style.display:', window.getComputedStyle(menu).display);
+    console.log('└─ Toggle done');
+}
+
+/**
+ * Logo click to go home
+ */
+function setupLogoClick() {
+    const logo = document.querySelector('.logo');
+    if (logo) {
+        logo.style.cursor = 'pointer';
+        logo.addEventListener('click', () => {
+            const path = window.location.pathname;
+            const homeUrl = path.includes('pages/') ? '../index.html' : 'index.html';
+            window.location.href = homeUrl;
+        });
+    }
+}
+
+/**
+ * Smooth scroll for anchor links
+ */
+function setupSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+            
+            const target = document.querySelector(href);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
     });
 }
 
-function removeMobileMenu() {
-    const toggle = document.querySelector('.nav-toggle');
-    if (toggle) {
-        toggle.remove();
-        document.querySelector('nav ul').classList.remove('active', 'nav-menu');
-    }
-}
-
+/**
+ * Highlight active page
+ */
 function highlightActivePage() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    document.querySelectorAll('nav a').forEach(link => {
-        link.classList.remove('active');
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('.nav-list a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href.endsWith(currentPage) || (currentPage === '' && href === 'index.html')) {
+        if (href === currentPath || (href === 'index.html' && currentPath.endsWith('/'))) {
             link.classList.add('active');
         }
     });
 }
 
-// Tab functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
+/**
+ * Tab functionality
+ */
+function setupTabFunctionality() {
+    const buttons = document.querySelectorAll('.tab-button');
+    if (buttons.length === 0) return;
 
-    tabButtons.forEach(button => {
+    buttons.forEach(button => {
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
             
-            // Remove active class from all buttons
-            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            // Remove active class from all content
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Add active class to clicked button
             this.classList.add('active');
-            
-            // Add active class to corresponding content
-            const activeContent = document.getElementById(tabId);
-            if (activeContent) {
-                activeContent.classList.add('active');
-            }
+            const content = document.getElementById(tabId);
+            if (content) content.classList.add('active');
         });
     });
-});
+}
 
-// Form submission handler
-document.addEventListener('DOMContentLoaded', function() {
-    const registrationForm = document.querySelector('.registration-form');
-    if (registrationForm) {
-        registrationForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Collect form data
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData);
-            
-            // Get parent name to personalize message
-            const parentName = data.parentname || 'Calon Siswa Baru';
-            const studentName = data.fullname || 'calon siswa';
-            const program = data.program || 'program pilihan';
-            
-            // Create WhatsApp message
-            const message = `Halo, saya ingin mendaftarkan ${studentName} untuk program ${program}. Nama orang tua: ${parentName}. No. HP: ${data.parentphone}`;
-            const whatsappLink = `https://wa.me/62xxxxxxxxxx?text=${encodeURIComponent(message)}`;
-            
-            // Show confirmation
-            alert('Terima kasih telah mengisi formulir!\n\nData Anda telah dicatat. Tim kami akan segera menghubungi Anda melalui WhatsApp atau email.\n\nSilakan juga hubungi kami di WhatsApp untuk proses pendaftaran lebih lanjut.');
-            
-            // Optional: Redirect to WhatsApp
-            // window.open(whatsappLink, '_blank');
-            
-            // Reset form
-            this.reset();
-        });
-    }
-});
+/**
+ * QR Code modal
+ */
+function setupQRModal() {
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest?.('.open-qr-modal');
+        if (btn) {
+            const jenjang = btn.dataset.jenjang || 'tk';
+            const modal = document.querySelector('.qr-modal');
+            if (!modal) return;
+
+            const img = modal.querySelector('#qrImage');
+            const title = modal.querySelector('h3');
+            const qrData = `pendaftaran.html?jenjang=${encodeURIComponent(jenjang)}`;
+            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}`;
+
+            if (img) img.src = qrSrc;
+            if (title) title.textContent = 'Scan QR Code - ' + (jenjang || '').toUpperCase();
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            return;
+        }
+
+        if (e.target.matches?.('.qr-modal-close') || e.target.matches?.('.qr-modal-overlay')) {
+            const modal = document.querySelector('.qr-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                const img = modal.querySelector('#qrImage');
+                if (img) img.src = '';
+            }
+        }
+    });
+}
+
+/**
+ * Utility: Debounce function
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
