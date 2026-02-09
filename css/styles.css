@@ -223,6 +223,15 @@ body {
     position: relative;
 }
 
+/* Force dropdowns closed by default to avoid auto-open on desktop */
+.main-header .dropdown-menu {
+    display: none;
+}
+
+.main-header .dropdown.active > .dropdown-menu {
+    display: flex;
+}
+
 .header-cta {
     flex-shrink: 0;
     transition: all 0.4s ease;

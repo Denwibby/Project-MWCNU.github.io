@@ -112,6 +112,12 @@ function setupDropdowns() {
             return;
         }
 
+        const closeAllDropdowns = () => {
+            document.querySelectorAll('.dropdown').forEach(d => {
+                d.classList.remove('active');
+            });
+        };
+
         dropdowns.forEach((dropdown) => {
             const toggle = dropdown.querySelector('.dropdown-toggle');
             const menu = dropdown.querySelector('.dropdown-menu');
@@ -139,9 +145,7 @@ function setupDropdowns() {
         const menuLinks = document.querySelectorAll('.dropdown-menu a');
         menuLinks.forEach(link => {
             link.addEventListener('click', (e) => {
-                document.querySelectorAll('.dropdown').forEach(d => {
-                    d.classList.remove('active');
-                });
+                closeAllDropdowns();
                 
                 if (window.innerWidth < 768) {
                     const mainNav = document.querySelector('.main-nav');
@@ -152,21 +156,28 @@ function setupDropdowns() {
             });
         });
 
+        // Close dropdowns on any pointer down outside menu/toggle (desktop)
+        document.addEventListener('pointerdown', (e) => {
+            if (window.innerWidth < 768) return;
+
+            const isMenu = e.target.closest('.dropdown-menu');
+            const isToggle = e.target.closest('.dropdown-toggle');
+            if (!isMenu && !isToggle) {
+                closeAllDropdowns();
+            }
+        }, true);
+
         // Close dropdowns when clicking outside (desktop + mobile)
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.dropdown')) {
-                document.querySelectorAll('.dropdown').forEach(d => {
-                    d.classList.remove('active');
-                });
+                closeAllDropdowns();
             }
         });
 
         // Close dropdowns with Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                document.querySelectorAll('.dropdown').forEach(d => {
-                    d.classList.remove('active');
-                });
+                closeAllDropdowns();
             }
         });
     } catch (err) {
