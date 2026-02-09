@@ -79,40 +79,79 @@ document.querySelectorAll('.button').forEach(button => {
     button.addEventListener('click', createRipple);
 });
 
-// Dropdown menu timing fix - mencegah dropdown menutup terlalu cepat
-let dropdownCloseTimer = null;
+// ========================================
+// DEVICE DETECTION INTEGRATION
+// ========================================
 
-document.querySelectorAll('.main-nav .dropdown').forEach(dropdown => {
-    const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+// Fungsi untuk menyesuaikan perilaku berdasarkan device
+function initDeviceSpecificFeatures() {
+    const body = document.body;
     
-    dropdown.addEventListener('mouseenter', function() {
-        clearTimeout(dropdownCloseTimer);
-        if (dropdownMenu) {
-            dropdownMenu.style.display = 'block';
-        }
-    });
+    // Cek apakah device detector sudah aktif
+    if (!body.hasAttribute('data-device')) {
+        console.log('[Main] Waiting for DeviceDetector...');
+        setTimeout(initDeviceSpecificFeatures, 100);
+        return;
+    }
     
-    dropdown.addEventListener('mouseleave', function() {
-        clearTimeout(dropdownCloseTimer);
-        dropdownCloseTimer = setTimeout(() => {
-            if (dropdownMenu) {
-                dropdownMenu.style.display = 'none';
-            }
-        }, 300); // Delay 300ms sebelum menutup
-    });
+    const deviceType = body.getAttribute('data-device');
+    const isTouch = body.classList.contains('touch-device');
     
-    // Jaga dropdown tetap terbuka saat mouse masuk ke menu
-    if (dropdownMenu) {
-        dropdownMenu.addEventListener('mouseenter', function() {
-            clearTimeout(dropdownCloseTimer);
-            this.style.display = 'block';
-        });
-        
-        dropdownMenu.addEventListener('mouseleave', function() {
-            clearTimeout(dropdownCloseTimer);
-            dropdownCloseTimer = setTimeout(() => {
-                this.style.display = 'none';
-            }, 300);
+    console.log(`[Main] Device features initialized for: ${deviceType}`);
+    
+    // Mobile-specific: Disable complex animations untuk performa lebih baik
+    if (deviceType === 'mobile') {
+        // Simplify animations on mobile
+        document.querySelectorAll('section').forEach(section => {
+            section.style.animation = 'none';
+            section.style.opacity = '1';
         });
     }
+    
+    // Desktop-specific: Enhanced hover effects
+    if (deviceType === 'desktop') {
+        // Enable smooth scroll untuk anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }
+            });
+        });
+        
+        // Re-enable animations untuk desktop
+        document.querySelectorAll('section').forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.animationDelay = `${index * 0.1}s`;
+        });
+    }
+    
+    // Tablet-specific: Hybrid behavior
+    if (deviceType === 'tablet') {
+        // Moderate animations
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '1';
+        });
+    }
+}
+
+// Initialize device features setelah DOM ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDeviceSpecificFeatures);
+} else {
+    initDeviceSpecificFeatures();
+}
+
+// Update features saat device berubah (resize/rotate)
+window.addEventListener('devicechange', function(e) {
+    console.log('[Main] Device changed, reinitializing features...');
+    initDeviceSpecificFeatures();
 });

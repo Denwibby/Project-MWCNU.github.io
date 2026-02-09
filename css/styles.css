@@ -1,4 +1,4 @@
-/* Animations */
+﻿/* Animations */
 @keyframes fadeInDown {
     from {
         opacity: 0;
@@ -103,28 +103,29 @@ body {
 
 /* Main Header */
 .main-header {
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    background: #fff;
+    box-shadow: none;
     padding: 0;
     position: sticky;
     top: 0;
     z-index: 500;
     transition: all 0.4s ease;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .main-header.scrolled {
     background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
 }
 
 .header-container {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px;
+    padding: 18px 32px;
     transition: padding 0.4s ease;
 }
 
@@ -140,8 +141,8 @@ body {
 
 .logo h1 {
     margin: 0;
-    font-size: 1.6em;
-    color: #2e7d32;
+    font-size: 1.4em;
+    color: #0b6156;
     font-weight: 700;
     transition: font-size 0.4s ease;
 }
@@ -177,19 +178,31 @@ body {
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 30px;
+    gap: 26px;
 }
 
 .main-nav a {
-    color: #333;
+    color: #163b45;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     display: flex;
     align-items: center;
     gap: 6px;
     transition: color 0.4s ease, font-size 0.4s ease;
-    padding: 8px 0;
+    padding: 8px 2px;
     font-size: 0.95em;
+}
+
+.main-header .main-nav {
+    margin: 0;
+    padding-bottom: 0;
+    animation: none;
+}
+
+.main-header .main-nav a {
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .main-header.scrolled .main-nav a {
@@ -197,7 +210,13 @@ body {
 }
 
 .main-nav a:hover {
-    color: #4CAF50;
+    color: #0b6156;
+}
+
+.main-header .main-nav a:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
 }
 
 .main-nav .dropdown {
@@ -210,18 +229,18 @@ body {
 }
 
 .cta-button {
-    background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
+    background: #0b6156;
     color: white;
-    padding: 12px 20px;
-    border-radius: 6px;
+    padding: 12px 22px;
+    border-radius: 4px;
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 8px;
     font-weight: 600;
     transition: all 0.4s ease;
-    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
-    font-size: 0.95em;
+    box-shadow: none;
+    font-size: 0.92em;
 }
 
 .main-header.scrolled .cta-button {
@@ -230,8 +249,9 @@ body {
 }
 
 .cta-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+    transform: translateY(-1px);
+    background: #0a5249;
+    box-shadow: none;
 }
 
 header:not(.main-header) {
@@ -253,14 +273,14 @@ header h1 {
     letter-spacing: 1px;
 }
 
-nav {
+header:not(.main-header) nav {
     margin: 25px 0;
     animation: fadeInUp 0.8s ease-out 0.2s both;
     overflow: visible;
     padding-bottom: 10px;
 }
 
-nav ul {
+header:not(.main-header) nav ul {
     list-style: none;
     padding: 0;
     display: flex;
@@ -270,13 +290,13 @@ nav ul {
     overflow: visible;
 }
 
-nav ul li {
+header:not(.main-header) nav ul li {
     margin: 0 10px;
     position: relative;
     overflow: visible;
 }
 
-nav ul li.dropdown .dropdown-menu {
+header:not(.main-header) nav ul li.dropdown .dropdown-menu {
     display: none;
     position: absolute;
     top: 100%;
@@ -305,24 +325,24 @@ nav ul li.dropdown .dropdown-menu {
 /* Dropdown visibility is controlled by the `.open` class so JS can ensure
    only one menu is open at a time on desktop. Mobile keeps the hover rule
    inside the media query to preserve touch behavior. */
-nav ul li.dropdown.open .dropdown-menu {
+header:not(.main-header) nav ul li.dropdown.open .dropdown-menu {
     display: block;
 }
 
 /* Ensure the hovered dropdown (and its menu) appears above adjacent menus */
-nav ul li.dropdown {
+header:not(.main-header) nav ul li.dropdown {
     z-index: 1000;
 }
 
-nav ul li.dropdown:hover {
+header:not(.main-header) nav ul li.dropdown:hover {
     z-index: 3000;
 }
 
-nav ul li.dropdown .dropdown-menu li {
+header:not(.main-header) nav ul li.dropdown .dropdown-menu li {
     margin: 0;
 }
 
-nav ul li.dropdown .dropdown-menu li a {
+header:not(.main-header) nav ul li.dropdown .dropdown-menu li a {
     display: block;
     padding: 12px 20px;
     color: #333;
@@ -331,14 +351,14 @@ nav ul li.dropdown .dropdown-menu li a {
     transition: all 0.3s ease;
 }
 
-nav ul li.dropdown .dropdown-menu li a:hover {
+header:not(.main-header) nav ul li.dropdown .dropdown-menu li a:hover {
     background: #f5f5f5;
     border-left: 3px solid #4CAF50;
     padding-left: 25px;
     color: #4CAF50;
 }
 
-nav ul li a {
+header:not(.main-header) nav ul li a {
     color: #fff;
     text-decoration: none;
     font-weight: 600;
@@ -350,7 +370,7 @@ nav ul li a {
     backdrop-filter: blur(10px);
 }
 
-nav ul li a:hover {
+header:not(.main-header) nav ul li a:hover {
     background: rgba(255, 255, 255, 0.3);
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -393,6 +413,12 @@ section:hover {
     transform: translateY(-5px);
 }
 
+.mission-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+}
+
 footer {
     background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
     color: #fff;
@@ -410,8 +436,10 @@ footer p {
 }
 
 .container {
-    width: 80%;
-    margin: auto;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .card {
@@ -1100,20 +1128,14 @@ h4 .fa-icon-green {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .mission-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
     .top-info-container {
         flex-direction: column;
         gap: 12px;
-    }
-
-    .header-container {
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px 12px;
-    }
-
-    .main-nav ul {
-        flex-direction: column;
-        gap: 8px;
     }
 
     .header-cta {
@@ -1183,88 +1205,6 @@ h4 .fa-icon-green {
         padding: 0 8px;
     }
 
-    /* Mobile hamburger toggle */
-    .header-container {
-        position: relative;
-    }
-
-    .nav-toggle {
-        display: block;
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: linear-gradient(135deg, #2e7d32 0%, #4CAF50 100%);
-        color: #fff;
-        padding: 10px 12px;
-        border-radius: 8px;
-        font-size: 20px;
-        line-height: 1;
-        z-index: 3000;
-        box-shadow: 0 6px 14px rgba(46,125,50,0.25);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-
-    /* Mobile nav menu appearance when toggled */
-    /* hide default nav until toggle created */
-    .main-nav ul {
-        display: none;
-    }
-
-    .nav-menu {
-        display: flex !important;
-        flex-direction: column;
-        gap: 8px;
-        background: #fff;
-        width: 100%;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        border-radius: 8px;
-        padding: 10px;
-        margin-top: 12px;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.35s ease;
-    }
-
-    .nav-menu.active {
-        max-height: 600px;
-    }
-
-    .nav-menu li a {
-        display: block;
-        padding: 12px 16px;
-        color: #2c3e50;
-        background: transparent;
-        border-radius: 6px;
-        font-weight: 700;
-    }
-
-    .nav-menu li a:hover {
-        background: rgba(46,125,50,0.08);
-        color: #2e7d32;
-    }
-
-    /* Show dropdown submenu items inside the expanded mobile menu */
-    .nav-menu li.dropdown .dropdown-menu {
-        display: none;
-        position: static;
-        background: transparent;
-        box-shadow: none;
-        padding: 0 0 0 8px;
-        margin: 6px 0 0 0;
-    }
-
-    /* Submenu visibility controlled by `.open` on the parent li */
-    .nav-menu li.dropdown .dropdown-menu {
-        display: none;
-    }
-
-    .nav-menu li.dropdown.open .dropdown-menu {
-        display: block;
-    }
 
     .nav-menu li.dropdown .dropdown-menu li a {
         padding: 10px 16px;
@@ -1285,10 +1225,5 @@ h4 .fa-icon-green {
         max-width: none;
         background: rgba(46, 125, 50, 0.95);
         padding: 8px 0;
-    }
-
-    nav ul li.dropdown:hover .dropdown-menu {
-        display: block;
-        margin-top: 5px;
     }
 }
