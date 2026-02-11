@@ -719,7 +719,7 @@ nav a.active {
 .hero-section-school {
     background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
     color: #fff;
-    padding: 60px 20px;
+    padding: 80px 20px;
     text-align: center;
     border-radius: 12px;
     margin: 20px;
@@ -727,16 +727,112 @@ nav a.active {
     overflow: hidden;
 }
 
+.sd-page .hero-section-school::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('../assets/images/sd-crowd.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(5px);
+    z-index: 1;
+}
+
+.mts-page .hero-section-school::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('../assets/images/mts-crowd.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(5px);
+    z-index: 1;
+}
+
+.smk-page .hero-section-school::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('../assets/images/smk-crowd.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(5px);
+    z-index: 1;
+}
+
+.hero-section-school::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.3) 50%, rgba(0, 0, 0, 0.1) 100%);
+    z-index: 2;
+}
+
+.sd-page .hero-section-school .hero-logo {
+    background-image: url('../assets/images/sd-logo.png');
+}
+
+
+
+.smk-page .hero-section-school .hero-logo {
+    background-image: url('../assets/images/smk-logo.png');
+}
+
+.hero-section-school .hero-logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    z-index: 3;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.sd-page .hero-section-school .hero-logo {
+    width: 100px;
+    height: 100px;
+}
+
+.mts-page .hero-section-school .hero-logo {
+    width: 120px;
+    height: 120px;
+}
+
+.smk-page .hero-section-school .hero-logo {
+    width: 140px;
+    height: 90px;
+}
+
 .hero-section-school h2 {
     font-size: 2.2em;
+    font-weight: 800;
     margin: 0 0 10px 0;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 3;
 }
 
 .hero-section-school p {
     font-size: 1.1em;
+    font-weight: 300;
     opacity: 0.95;
     margin: 0;
+    position: relative;
+    z-index: 3;
 }
 
 /* Statistics Section */
