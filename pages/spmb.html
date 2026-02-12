@@ -208,6 +208,29 @@
 
                 <button type="submit" class="form-submit"><i class="fas fa-paper-plane fa-icon-green"></i> Kirim Formulir Pendaftaran</button>
             </form>
+            <script>
+                // Handle form submission and save to localStorage
+                document.querySelector('.registration-form').addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const formData = new FormData(this);
+                    const data = Object.fromEntries(formData.entries());
+
+                    // Save to localStorage (simulating database)
+                    const registrations = JSON.parse(localStorage.getItem('registrations') || '[]');
+                    const newRegistration = {
+                        id: Date.now(),
+                        ...data,
+                        submittedAt: new Date().toISOString()
+                    };
+                    registrations.push(newRegistration);
+                    localStorage.setItem('registrations', JSON.stringify(registrations));
+
+                    alert('Pendaftaran berhasil dikirim! Kami akan menghubungi Anda segera.');
+                    this.reset();
+                });
+            </script>
+            </form>
         </section>
 
         <!-- Persyaratan Pendaftaran -->

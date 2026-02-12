@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - MWCNU</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/mobile-override.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .blog-post {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-left: 4px solid #4CAF50;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        .blog-post:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15);
+        }
+        .blog-post h3 {
+            color: #4CAF50;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .post-date {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .post-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .post-content {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <img src="../assets/images/nu-logo.png" alt="NU Logo" class="logo-img">
+                <h1><span class="logo-text">MWCNU Tanggulangin</span></h1>
+            </div>
+            <nav class="main-nav">
+                <ul class="nav-list" id="navList">
+                    <li><a href="../index.html">Home</a></li>
+                    <li class="dropdown">
+                        <a href="javascript:void(0)" class="dropdown-toggle">Profil <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="bp3nu-profile.html">Profil BP3NU</a></li>
+                            <li><a href="../index.html#visi-misi">Visi & Misi</a></li>
+                            <li><a href="../index.html#keunggulan">Keunggulan Kami</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="javascript:void(0)" class="dropdown-toggle">Lembaga Pendidikan <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="tk.html">Taman Kanak-Kanak (TK)</a></li>
+                            <li><a href="sd-maarif.html">Sekolah Dasar Maarif (SD)</a></li>
+                            <li><a href="mts.html">Madrasah Tsanawiyah (MTs)</a></li>
+                            <li><a href="smk.html">Sekolah Menengah Kejuruan (SMK)</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="contact.html">Kontak</a></li>
+                </ul>
+            </nav>
+            <div class="header-cta">
+                <a href="tel:+62812800827" class="cta-button">
+                    <i class="fas fa-phone"></i> <span class="phone-text">+62 812 8008 0275</span>
+                </a>
+            </div>
+            <button class="hamburger-menu" id="hamburgerMenu" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero-section-school">
+            <h2>Blog MWCNU</h2>
+            <p>Berita, pengumuman, dan informasi terbaru dari MWCNU Tanggulangin</p>
+        </section>
+
+        <!-- Blog Posts -->
+        <section>
+            <h2><i class="fas fa-newspaper fa-icon-green"></i> Latest Posts</h2>
+            <div id="blog-posts">
+                <!-- Blog posts will be rendered here by JavaScript -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Majelis Wakil Cabang Nahdlatul Ulama. All rights reserved.</p>
+    </footer>
+    <script src="../js/device-detector.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/navigation.js"></script>
+    <script src="../js/blog.js"></script>
+</body>
+</html>
