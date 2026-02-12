@@ -259,24 +259,24 @@
                 
                 <div class="form-group">
                     <label for="namaLengkap">Nama Lengkap *</label>
-                    <input type="text" id="namaLengkap" name="namaLengkap" required>
+                    <input type="text" id="nama_lengkap" name="namaLengkap" required>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="tempatLahir">Tempat Lahir *</label>
-                        <input type="text" id="tempatLahir" name="tempatLahir" required>
+                        <input type="text" id="tempat_lahir" name="tempatLahir" required>
                     </div>
                     <div class="form-group">
                         <label for="tanggalLahir">Tanggal Lahir *</label>
-                        <input type="date" id="tanggalLahir" name="tanggalLahir" required>
+                        <input type="date" id="tanggal_lahir" name="tanggalLahir" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="jenisKelamin">Jenis Kelamin *</label>
-                        <select id="jenisKelamin" name="jenisKelamin" required>
+                        <select id="jenis_kelamin" name="jenisKelamin" required>
                             <option value="">-- Pilih --</option>
                             <option value="Laki-laki">Laki-laki</option>
                             <option value="Perempuan">Perempuan</option>
@@ -304,11 +304,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="noIdentitas">No. Kartu Identitas (KTP/Akta/KKIA) *</label>
-                        <input type="text" id="noIdentitas" name="noIdentitas" required>
+                        <input type="text" id="no_identitas" name="noIdentitas" required>
                     </div>
                     <div class="form-group">
                         <label for="noTelepon">No. Telepon *</label>
-                        <input type="tel" id="noTelepon" name="noTelepon" required>
+                        <input type="tel" id="no_telp_siswa" name="noTelepon" required>
                     </div>
                 </div>
             </div>
@@ -320,33 +320,33 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="namaAyah">Nama Ayah *</label>
-                        <input type="text" id="namaAyah" name="namaAyah" required>
+                        <input type="text" id="nama_ayah" name="namaAyah" required>
                     </div>
                     <div class="form-group">
                         <label for="namaIbu">Nama Ibu *</label>
-                        <input type="text" id="namaIbu" name="namaIbu" required>
+                        <input type="text" id="nama_ibu" name="namaIbu" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="pekerjaanAyah">Pekerjaan Ayah</label>
-                        <input type="text" id="pekerjaanAyah" name="pekerjaanAyah">
+                        <input type="text" id="pekerjaan_ayah" name="pekerjaanAyah">
                     </div>
                     <div class="form-group">
                         <label for="pekerjaanIbu">Pekerjaan Ibu</label>
-                        <input type="text" id="pekerjaanIbu" name="pekerjaanIbu">
+                        <input type="text" id="pekerjaan_ibu" name="pekerjaanIbu">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="noTeleponOrangTua">No. Telepon Orang Tua *</label>
-                        <input type="tel" id="noTeleponOrangTua" name="noTeleponOrangTua" required>
+                        <input type="tel" id="no_telp_ortu" name="noTeleponOrangTua" required>
                     </div>
                     <div class="form-group">
                         <label for="emailOrangTua">Email Orang Tua</label>
-                        <input type="email" id="emailOrangTua" name="emailOrangTua">
+                        <input type="email" id="email_ortu" name="emailOrangTua">
                     </div>
                 </div>
             </div>
@@ -354,10 +354,15 @@
             <!-- Informasi Tambahan -->
             <div class="form-section">
                 <div class="form-section-title"><i class="fas fa-circle-info fa-icon-green"></i> Informasi Tambahan</div>
-                
+
+                <div class="form-group">
+                    <label for="jenjang">Jenjang Pendidikan *</label>
+                    <input type="text" id="jenjang" name="jenjang" readonly required>
+                </div>
+
                 <div class="form-group">
                     <label for="nomorRapor">Nomor Ujian/Rapor Sebelumnya (jika ada)</label>
-                    <input type="text" id="nomorRapor" name="nomorRapor">
+                    <input type="text" id="no_ujian_rapor" name="nomorRapor">
                 </div>
 
                 <div class="form-group">
@@ -367,7 +372,7 @@
 
                 <div class="form-group">
                     <label for="alasanMemilih">Alasan Memilih Sekolah Kami</label>
-                    <textarea id="alasanMemilih" name="alasanMemilih"></textarea>
+                    <textarea id="alasan_memilih" name="alasanMemilih"></textarea>
                 </div>
             </div>
 
@@ -391,6 +396,9 @@
         <p>&copy; 2023 Majelis Wakil Cabang Nahdlatul Ulama. All rights reserved.</p>
     </footer>
 
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
@@ -405,9 +413,8 @@
                     'Usia 3-6 tahun',
                     'Fotokopi akta kelahiran',
                     'Pas foto ukuran 3x4 (2 lembar)',
-                    'Surat keterangan sehat dari dokter'
                 ],
-                hideFields: ['nomorRapor', 'prestasi']
+                hideFields: ['nomor_rapor', 'prestasi']
             },
             sd: {
                 name: 'Sekolah Dasar Maarif (SD)',
@@ -499,66 +506,57 @@
                 }
             });
 
+            // Set jenjang field value
+            document.getElementById('jenjang').value = school.name;
+
             // Store jenjang for form submission
             document.getElementById('registrationForm').dataset.jenjang = jenjang;
         }
 
         // Handle form submission
-        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            console.log('Form submitted');
 
             const jenjang = this.dataset.jenjang;
             const school = schoolData[jenjang];
 
-            // Collect form data
-            const formData = {
-                jenjang: jenjang,
-                sekolah: school.name,
-                namaLengkap: document.getElementById('namaLengkap').value,
-                tempatLahir: document.getElementById('tempatLahir').value,
-                tanggalLahir: document.getElementById('tanggalLahir').value,
-                jenisKelamin: document.getElementById('jenisKelamin').value,
-                agama: document.getElementById('agama').value,
-                alamat: document.getElementById('alamat').value,
-                noIdentitas: document.getElementById('noIdentitas').value,
-                noTelepon: document.getElementById('noTelepon').value,
-                namaAyah: document.getElementById('namaAyah').value,
-                namaIbu: document.getElementById('namaIbu').value,
-                pekerjaanAyah: document.getElementById('pekerjaanAyah').value,
-                pekerjaanIbu: document.getElementById('pekerjaanIbu').value,
-                noTeleponOrangTua: document.getElementById('noTeleponOrangTua').value,
-                emailOrangTua: document.getElementById('emailOrangTua').value,
-                nomorRapor: document.getElementById('nomorRapor').value,
-                prestasi: document.getElementById('prestasi').value,
-                alasanMemilih: document.getElementById('alasanMemilih').value,
-                tanggalPendaftaran: new Date().toLocaleString('id-ID')
-            };
-
-            // Log form data (in production, send to backend)
-            console.log('Form Data:', formData);
-
-            // Save to localStorage for demo
-            let allRegistrations = JSON.parse(localStorage.getItem('pendaftaran') || '[]');
-            allRegistrations.push(formData);
-            localStorage.setItem('pendaftaran', JSON.stringify(allRegistrations));
-
-            // Show success message
+            // Menampilkan pesan loading
             const successMsg = document.getElementById('successMessage');
-            successMsg.textContent = `<i class="fas fa-circle-check" style="color: #155724; margin-right: 8px;"></i> Pendaftaran berhasil dikirim! Terima kasih telah mendaftar di ${school.name}. Data Anda telah kami terima dan akan segera kami proses.`;
-            successMsg.style.display = 'block';
+            const errorMsg = document.getElementById('errorMessage');
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
 
-            // Optional: Send WhatsApp notification
-            const whatsappMessage = `*Pendaftaran Baru - ${school.name}*%0A%0ANama: ${formData.namaLengkap}%0AJenjang: ${school.name}%0ATanggal: ${formData.tanggalPendaftaran}`;
-            console.log('WhatsApp notification (update with your number):', whatsappMessage);
+            // Mengumpulkan data form dan menyimpannya ke Supabase
+            try {
+                console.log('Calling simpanDataDariForm');
+                await simpanDataDariForm();
+                console.log('simpanDataDariForm completed');
 
-            // Reset form
-            this.reset();
-            window.scrollTo(0, 0);
+                // Menampilkan pesan sukses
+                successMsg.innerHTML = `<i class="fas fa-circle-check" style="color: #155724; margin-right: 8px;"></i> Pendaftaran berhasil dikirim! Terima kasih telah mendaftar. Data Anda telah kami terima dan akan segera kami proses.`;
+                successMsg.style.display = 'block';
 
-            // Hide success message after 5 seconds
-            setTimeout(() => {
-                successMsg.style.display = 'none';
-            }, 5000);
+                // Reset form
+                this.reset();
+                window.scrollTo(0, 0);
+
+                // Menyembunyikan pesan sukses setelah 5 detik
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 5000);
+
+            } catch (error) {
+                console.error('Error in form submission:', error);
+                // Menampilkan pesan error jika terjadi kesalahan
+                errorMsg.textContent = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                errorMsg.style.display = 'block';
+
+                // Menyembunyikan pesan error setelah 5 detik
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 5000);
+            }
         });
 
         // Initialize on page load

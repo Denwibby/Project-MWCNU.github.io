@@ -467,6 +467,9 @@
         <p>&copy; 2023 Majelis Wakil Cabang Nahdlatul Ulama. All rights reserved.</p>
     </footer>
 
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
@@ -475,13 +478,83 @@
     <script src="../js/pdf-export.js"></script>
 
     <script>
-        // Initialize image upload handler
+        // Initialize image upload handler and blog management
         document.addEventListener('DOMContentLoaded', function() {
             const imageFileInput = document.getElementById('image-file');
             if (imageFileInput) {
                 imageFileInput.addEventListener('change', handleImageUpload);
             }
+
+            // Load blog posts when blog tab is active
+            const blogTab = document.querySelector('[data-tab="blog"]');
+            if (blogTab) {
+                blogTab.addEventListener('click', loadBlogPostsForAdmin);
+            }
+
+            // Also load on initial page load if blog tab is active
+            if (document.getElementById('blog').classList.contains('active')) {
+                loadBlogPostsForAdmin();
+            }
         });
+
+        // Function to load and display blog posts for admin management
+        async function loadBlogPostsForAdmin() {
+            try {
+                const posts = await ambilSemuaBlog();
+                const container = document.getElementById('blog-posts-list');
+
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                if (!posts || posts.length === 0) {
+                    container.innerHTML = '<p>No blog posts found.</p>';
+                    return;
+                }
+
+                posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'blog-post-admin';
+                    postElement.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="margin: 0; color: #4CAF50;">${post.judul}</h4>
+                            <button onclick="hapusBlogPost(${post.id})" class="btn-delete" style="padding: 6px 12px; font-size: 0.8em;">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                        <p style="margin: 5px 0; color: #666; font-size: 0.9em;">
+                            ${new Date(post.tanggal).toLocaleDateString('id-ID')}
+                        </p>
+                        <p style="margin: 10px 0;">${post.konten.substring(0, 150)}${post.konten.length > 150 ? '...' : ''}</p>
+                        ${post.gambar_url ? `<img src="${post.gambar_url}" alt="${post.judul}" style="max-width: 150px; max-height: 100px; border-radius: 4px;">` : ''}
+                    `;
+                    container.appendChild(postElement);
+                });
+
+            } catch (error) {
+                console.error('Error loading blog posts:', error);
+                const container = document.getElementById('blog-posts-list');
+                if (container) {
+                    container.innerHTML = '<p>Error loading blog posts. Please try again.</p>';
+                }
+            }
+        }
+
+        // Function to delete a blog post
+        async function hapusBlogPost(id) {
+            if (!confirm('Are you sure you want to delete this blog post?')) {
+                return;
+            }
+
+            try {
+                await hapusBlog(id);
+                alert('Blog post deleted successfully!');
+                loadBlogPostsForAdmin(); // Reload the list
+            } catch (error) {
+                console.error('Error deleting blog post:', error);
+                alert('Error deleting blog post. Please try again.');
+            }
+        }
     </script>
 </body>
 </html>
