@@ -1,9 +1,14 @@
-# TODO: Implement Automatic Jenjang Filling in Registration Form
+# TODO - Registration Statistics Fix
+
+## Problem
+- Statistics showing 0 because of mismatch between:
+  - Stored jenjang values: "Taman Kanak-Kanak (TK)", "Sekolah Dasar Maarif (SD)", "Madrasah Tsanawiyah (MTs)", "Sekolah Menengah Kejuruan (SMK)"
+  - Filter values in admin.js: "TK", "SD", "MTs", "SMK"
+
+## Solution
+- Update js/admin.js to filter using full jenjang names that are actually stored
 
 ## Tasks
-- [x] Fix deteksiJenjang in js/supabase.js to use URL param instead of filename
-- [x] Add readonly jenjang input field in pages/pendaftaran.html (Informasi Tambahan section)
-- [x] Set jenjang field value in initializeForm function
-- [x] Collect jenjang from form in simpanDataDariForm
-- [x] Remove jenjang addition from simpanPendaftaran (now in form data)
-- [x] Test form submission to ensure jenjang is saved correctly (tested via code review - jenjang collected from form field)
+- [x] Analyze the root cause of statistics showing 0
+- [ ] Update admin.js filtering logic to match stored values
+- [ ] Test the fix

@@ -6,6 +6,16 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Inisialisasi koneksi ke Supabase
 var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+function normalizeJenjangForDb(value) {
+    const raw = (value || '').toString().trim().toLowerCase();
+    if (!raw) return '';
+    if (raw.includes('smk')) return 'SMK';
+    if (raw.includes('mts') || raw.includes('tsanawiyah')) return 'MTs';
+    if (raw.includes('sd') || raw.includes('dasar')) return 'SD';
+    if (raw.includes('tk') || raw.includes('kanak')) return 'TK';
+    return value;
+}
+
 // Fungsi untuk mendeteksi jenjang secara otomatis berdasarkan parameter URL
 function deteksiJenjang() {
     // Mendapatkan parameter jenjang dari URL
@@ -67,7 +77,7 @@ async function simpanDataDariForm() {
             pekerjaan_ibu: document.querySelector('#pekerjaan_ibu').value,
             no_telp_ortu: document.querySelector('#no_telp_ortu').value,
             email_ortu: document.querySelector('#email_ortu').value,
-            jenjang: document.querySelector('#jenjang').value,
+            jenjang: normalizeJenjangForDb(document.querySelector('#jenjang').value),
             no_ujian_rapor: document.querySelector('#no_ujian_rapor').value,
             prestasi: document.querySelector('#prestasi').value,
             alasan_memilih: document.querySelector('#alasan_memilih').value
@@ -110,8 +120,8 @@ async function tampilkanBlog() {
     try {
         // Mengambil data dari tabel 'blog' di Supabase
         const { data: posts, error } = await supabase
-            .from('Blog')
-            .select('judul, konten, gambar_url, tanggal')
+            .from('blog')
+            .select('blog_title, blog_content, gambar_url, tanggal')
             .order('tanggal', { ascending: false }); // Mengurutkan berdasarkan tanggal terbaru
 
         if (error) {
@@ -148,10 +158,10 @@ async function tampilkanBlog() {
             });
 
             postElement.innerHTML = `
-                <h3>${post.judul}</h3>
+                <h3>${post.blog_title}</h3>
                 <p class="post-date">${tanggal}</p>
-                ${post.gambar_url ? `<img src="${post.gambar_url}" alt="${post.judul}" class="post-image">` : ''}
-                <div class="post-content">${post.konten}</div>
+                ${post.gambar_url ? `<img src="${post.gambar_url}" alt="${post.blog_title}" class="post-image">` : ''}
+                <div class="post-content">${post.blog_content}</div>
             `;
 
             container.appendChild(postElement);
@@ -173,7 +183,7 @@ async function hapusBlog(id) {
     try {
         // Menghapus data dari tabel 'blog' di Supabase berdasarkan ID
         const { data, error } = await supabase
-            .from('Blog')
+            .from('blog')
             .delete()
             .eq('id', id); // Menggunakan kolom 'id' untuk identifikasi
 
@@ -186,6 +196,29 @@ async function hapusBlog(id) {
         return data;
     } catch (error) {
         console.error('Terjadi kesalahan saat menghapus blog:', error);
+        throw error;
+    }
+}
+
+// Fungsi untuk menyimpan blog ke tabel 'blog'
+async function simpanBlog(dataBlog) {
+    try {
+        console.log('Data blog to insert:', dataBlog);
+
+        // Mengirim data ke tabel 'blog' di Supabase
+        const { data, error } = await supabase
+            .from('blog')
+            .insert([dataBlog]);
+
+        if (error) {
+            console.error('Error menyimpan blog:', error);
+            throw error;
+        }
+
+        console.log('Data blog berhasil disimpan:', data);
+        return data;
+    } catch (error) {
+        console.error('Terjadi kesalahan saat menyimpan blog:', error);
         throw error;
     }
 }
@@ -233,6 +266,7 @@ if (typeof module !== 'undefined' && module.exports) {
         deteksiJenjang,
         testKoneksiSupabase,
         hapusBlog,
+        simpanBlog,
         ambilSemuaBlog
     };
 }
@@ -241,3 +275,142 @@ if (typeof module !== 'undefined' && module.exports) {
 window.simpanDataDariForm = simpanDataDariForm;
 window.tampilkanBlog = tampilkanBlog;
 window.testKoneksiSupabase = testKoneksiSupabase;
+window.simpanBlog = simpanBlog;
+window.hapusBlog = hapusBlog;
+window.ambilSemuaBlog = ambilSemuaBlog;
+
+// Fungsi untuk mengunggah gambar ke Supabase Storage
+async function uploadImageToSupabase(file) {
+    try {
+        // Validasi file
+        if (!file) {
+            throw new Error('File tidak ditemukan');
+        }
+
+        // Validasi tipe file
+        if (!file.type.startsWith('image/')) {
+            throw new Error('File harus berupa gambar');
+        }
+
+        // Validasi ukuran file (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            throw new Error('Ukuran file maksimal 5MB');
+        }
+
+        // Membuat nama file unik dengan Date.now()
+        const uniqueFileName = `blog_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+        
+        console.log('Mengunggah gambar:', uniqueFileName);
+
+        // Mengunggah file ke Supabase Storage bucket 'blog_images'
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('blog_images')
+            .upload(uniqueFileName, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('Error upload gambar:', uploadError);
+            throw uploadError;
+        }
+
+        console.log('Upload berhasil:', uploadData);
+
+        // Mendapatkan public URL dari gambar
+        const { data: urlData, error: urlError } = await supabase.storage
+            .from('blog_images')
+            .getPublicUrl(uniqueFileName);
+
+        if (urlError) {
+            console.error('Error mendapatkan URL:', urlError);
+            throw urlError;
+        }
+
+        const publicUrl = urlData.publicUrl;
+        console.log('Public URL:', publicUrl);
+
+        return {
+            success: true,
+            publicUrl: publicUrl,
+            filePath: uploadData.path
+        };
+
+    } catch (error) {
+        console.error('Terjadi kesalahan saat mengunggah gambar:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Fungsi untuk menyimpan blog dengan upload gambar otomatis
+async function simpanBlogDenganGambar(judul, konten, fileGambar) {
+    try {
+        let gambarUrl = '';
+
+        // Jika ada file gambar, upload ke Supabase
+        if (fileGambar) {
+            const uploadResult = await uploadImageToSupabase(fileGambar);
+            
+            if (!uploadResult.success) {
+                throw new Error('Gagal mengunggah gambar: ' + uploadResult.error);
+            }
+            
+            gambarUrl = uploadResult.publicUrl;
+        }
+
+        // Menyiapkan data blog
+        const dataBlog = {
+            judul: judul,
+            konten: konten,
+            gambar_url: gambarUrl,
+            tanggal: new Date().toISOString()
+        };
+
+        console.log('Data blog akan disimpan:', dataBlog);
+
+        // Menyimpan ke database menggunakan fungsi yang sudah ada
+        const result = await simpanBlog(dataBlog);
+
+        return {
+            success: true,
+            data: result,
+            gambarUrl: gambarUrl
+        };
+
+    } catch (error) {
+        console.error('Error menyimpan blog dengan gambar:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Fungsi untuk menghapus gambar dari Supabase Storage
+async function hapusGambarDariSupabase(filePath) {
+    try {
+        const { data, error } = await supabase.storage
+            .from('blog_images')
+            .remove([filePath]);
+
+        if (error) {
+            console.error('Error menghapus gambar:', error);
+            throw error;
+        }
+
+        console.log('Gambar berhasil dihapus:', data);
+        return { success: true, data: data };
+
+    } catch (error) {
+        console.error('Terjadi kesalahan saat menghapus gambar:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Mengekspor fungsi-fungsi baru ke global window
+window.uploadImageToSupabase = uploadImageToSupabase;
+window.simpanBlogDenganGambar = simpanBlogDenganGambar;
+window.hapusGambarDariSupabase = hapusGambarDariSupabase;

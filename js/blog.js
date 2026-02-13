@@ -14,8 +14,8 @@ function saveBlogPost(title, content, imageUrl = '', date = new Date().toISOStri
     localStorage.setItem('blogPosts', JSON.stringify(posts));
 }
 
-// Handle image upload for blog posts
-function handleImageUpload(event) {
+// Handle image upload for blog posts - uploads to Supabase Storage
+async function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -31,14 +31,47 @@ function handleImageUpload(event) {
         return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const imageUrl = e.target.result;
-        document.getElementById('blog-image').value = imageUrl;
-        document.getElementById('image-preview').src = imageUrl;
-        document.getElementById('image-preview').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+    // Show loading indicator
+    const imagePreview = document.getElementById('image-preview');
+    const blogImage = document.getElementById('blog-image');
+    
+    if (imagePreview) {
+        imagePreview.alt = 'Uploading...';
+        imagePreview.style.opacity = '0.5';
+    }
+
+    try {
+        // Upload image to Supabase Storage
+        const uploadResult = await uploadImageToSupabase(file);
+
+        if (uploadResult.success) {
+            // Set the public URL to the hidden input
+            if (blogImage) {
+                blogImage.value = uploadResult.publicUrl;
+            }
+            
+            // Display image preview
+            if (imagePreview) {
+                imagePreview.src = uploadResult.publicUrl;
+                imagePreview.alt = 'Blog image';
+                imagePreview.style.display = 'block';
+                imagePreview.style.opacity = '1';
+            }
+            
+            console.log('Image uploaded successfully:', uploadResult.publicUrl);
+        } else {
+            alert('Failed to upload image: ' + uploadResult.error);
+            if (imagePreview) {
+                imagePreview.style.opacity = '1';
+            }
+        }
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('Error uploading image. Please try again.');
+        if (imagePreview) {
+            imagePreview.style.opacity = '1';
+        }
+    }
 }
 
 // Get all blog posts
@@ -78,17 +111,62 @@ function renderBlogPosts() {
     });
 }
 
-// Handle form submission for adding posts
-function handleBlogFormSubmit(event) {
+// Handle form submission for adding posts - saves to Supabase
+async function handleBlogFormSubmit(event) {
     event.preventDefault();
+    
     const title = document.getElementById('blog-title').value;
     const content = document.getElementById('blog-content').value;
     const imageUrl = document.getElementById('blog-image').value;
+    const imageInput = document.getElementById('blog-image-input');
 
     if (title && content) {
-        saveBlogPost(title, content, imageUrl);
-        alert('Blog post added successfully!');
-        document.getElementById('blog-form').reset();
+        try {
+            // Check if there's a new image file to upload
+            let finalImageUrl = imageUrl;
+            
+            if (imageInput && imageInput.files && imageInput.files[0]) {
+                // Upload the new image file
+                const uploadResult = await uploadImageToSupabase(imageInput.files[0]);
+                
+                if (uploadResult.success) {
+                    finalImageUrl = uploadResult.publicUrl;
+                } else {
+                    alert('Failed to upload image: ' + uploadResult.error);
+                    return;
+                }
+            }
+
+            // Save blog post to Supabase database
+            const dataBlog = {
+                blog_title: title,
+                blog_content: content,
+                gambar_url: finalImageUrl,
+                tanggal: new Date().toISOString()
+            };
+
+            const result = await simpanBlog(dataBlog);
+            
+            if (result) {
+                alert('Blog post added successfully!');
+                document.getElementById('blog-form').reset();
+                
+                // Reset image preview
+                const imagePreview = document.getElementById('image-preview');
+                if (imagePreview) {
+                    imagePreview.style.display = 'none';
+                    imagePreview.src = '';
+                }
+                
+                // Refresh blog posts if function exists
+                if (typeof tampilkanBlog === 'function') {
+                    tampilkanBlog();
+                }
+            }
+        } catch (error) {
+            console.error('Error saving blog post:', error);
+            alert('Error saving blog post. Please try again.');
+        }
     } else {
         alert('Please fill in title and content.');
     }

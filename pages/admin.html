@@ -459,6 +459,13 @@
                         <button type="submit" class="form-submit">Add Blog Post</button>
                     </form>
                 </section>
+
+                <section>
+                    <h2><i class="fas fa-list fa-icon-green"></i> Existing Blog Posts</h2>
+                    <div id="blog-posts-list">
+                        <!-- Blog posts will be loaded here -->
+                    </div>
+                </section>
             </div>
         </div>
     </main>
@@ -470,6 +477,7 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase.js"></script>
+    <script src="../js/auth.js"></script>
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
@@ -478,6 +486,23 @@
     <script src="../js/pdf-export.js"></script>
 
     <script>
+        // ============================================
+        // Middleware: Cek apakah user sudah login
+        // ============================================
+        
+        // Jalankan middleware saat halaman dimuat
+        (async function() {
+            const isAuthenticated = await requireAuth();
+            if (!isAuthenticated) {
+                // Jika tidak login, redirect sudah ditangani oleh requireAuth
+                return;
+            }
+            console.log('User authenticated, loading admin panel...');
+            
+            // Jika sudah login, tampilkan admin panel
+            showAdminPanel();
+        })();
+
         // Initialize image upload handler and blog management
         document.addEventListener('DOMContentLoaded', function() {
             const imageFileInput = document.getElementById('image-file');
@@ -494,6 +519,67 @@
             // Also load on initial page load if blog tab is active
             if (document.getElementById('blog').classList.contains('active')) {
                 loadBlogPostsForAdmin();
+            }
+        });
+
+        // Function to handle blog form submission
+        async function handleBlogFormSubmit(event) {
+            event.preventDefault();
+            const title = document.getElementById('blog-title').value;
+            const content = document.getElementById('blog-content').value;
+            const imageUrl = document.getElementById('blog-image').value;
+            const imageFileInput = document.getElementById('image-file');
+
+            if (!title || !content) {
+                alert('Please fill in title and content.');
+                return;
+            }
+
+            try {
+                let finalImageUrl = imageUrl;
+                
+                // If there's a new image file, upload it first
+                if (imageFileInput && imageFileInput.files && imageFileInput.files[0]) {
+                    const uploadResult = await uploadImageToSupabase(imageFileInput.files[0]);
+                    
+                    if (uploadResult.success) {
+                        finalImageUrl = uploadResult.publicUrl;
+                    } else {
+                        alert('Failed to upload image: ' + uploadResult.error);
+                        return;
+                    }
+                }
+
+                const dataBlog = {
+                    blog_title: title,
+                    blog_content: content,
+                    gambar_url: finalImageUrl || null,
+                    tanggal: new Date().toISOString()
+                };
+
+                await simpanBlog(dataBlog);
+                alert('Blog post added successfully!');
+                document.getElementById('blog-form').reset();
+                
+                // Reset image preview
+                const imagePreview = document.getElementById('image-preview');
+                if (imagePreview) {
+                    imagePreview.style.display = 'none';
+                    imagePreview.src = '';
+                }
+                
+                loadBlogPostsForAdmin(); // Reload the list
+            } catch (error) {
+                console.error('Error saving blog post:', error);
+                alert('Error saving blog post. Please try again.');
+            }
+        }
+
+        // Attach event listener to blog form
+        document.addEventListener('DOMContentLoaded', function() {
+            const blogForm = document.getElementById('blog-form');
+            if (blogForm) {
+                blogForm.addEventListener('submit', handleBlogFormSubmit);
             }
         });
 

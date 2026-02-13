@@ -5,7 +5,7 @@
   "main": "src/index.html",
   "scripts": {
     "start": "live-server src",
-    "build": "echo 'Build process not defined yet.'"
+    "build": "mkdir dist && xcopy . dist /E /I /H /Y && mkdir api && xcopy backend api /E /I /H /Y"
   },
   "keywords": [
     "education",
