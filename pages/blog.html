@@ -180,12 +180,6 @@
         </div>
     </header>
     <main class="container">
-        <!-- Hero Section -->
-        <section class="hero-section-school">
-            <h2>Blog MWCNU</h2>
-            <p>Berita, pengumuman, dan informasi terbaru dari MWCNU Tanggulangin</p>
-        </section>
-
         <!-- Blog Posts -->
         <section>
             <h2 style="color: var(--blog-accent);"><i class="fas fa-newspaper"></i> Berita & Artikel</h2>
@@ -277,6 +271,16 @@
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
+    <script>
+        // Load and display blog posts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof tampilkanBlog === 'function') {
+                tampilkanBlog();
+            } else {
+                console.error('Fungsi tampilkanBlog tidak ditemukan');
+            }
+        });
+    </script>
     <a href="https://wa.me/+6283853577035" class="floating-whatsapp" target="_blank" aria-label="Chat WhatsApp"><i class="fab fa-whatsapp"></i></a>
 </body>
 

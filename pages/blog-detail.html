@@ -596,8 +596,19 @@
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
+    <script>
+        // Load blog detail when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof tampilkanDetailBlog === 'function') {
+                tampilkanDetailBlog();
+            } else {
+                console.error('Fungsi tampilkanDetailBlog tidak ditemukan');
+            }
+        });
+    </script>
     <a href="https://wa.me/+6283853577035" class="floating-whatsapp" target="_blank" aria-label="Chat WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
 </body>
+
 
 </html>
