@@ -461,11 +461,6 @@
                     <li><a href="contact.html">Kontak</a></li>
                 </ul>
             </nav>
-            <div class="header-cta">
-                <a href="tel:+62812800827" class="cta-button">
-                    <i class="fas fa-phone"></i> <span class="phone-text">+62 812 8008 0275</span>
-                </a>
-            </div>
             <button class="hamburger-menu" id="hamburgerMenu" aria-label="Toggle menu">
                 <span></span>
                 <span></span>
@@ -600,105 +595,7 @@
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
-    <script>
-        function formatTanggalPendek(value) {
-            if (!value) return '-';
-            return new Date(value).toLocaleDateString('id-ID', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
-        }
-
-        function updateBreadcrumbTitle() {
-            const titleEl = document.querySelector('#detail-title');
-            const breadcrumbTitleEl = document.querySelector('#detail-breadcrumb-current');
-            if (!titleEl || !breadcrumbTitleEl) return;
-            breadcrumbTitleEl.textContent = titleEl.textContent || 'Detail Berita';
-        }
-
-        async function muatBeritaPopuler() {
-            const listEl = document.querySelector('#popular-list');
-            const fallbackImagePath = '../assets/images/nu-logo.png';
-            if (!listEl || typeof supabase === 'undefined') return;
-
-            const params = new URLSearchParams(window.location.search);
-            const currentId = Number(params.get('id'));
-
-            try {
-                const { data, error } = await supabase
-                    .from('blog')
-                    .select('id, blog_title, tanggal, gambar_url')
-                    .order('tanggal', { ascending: false })
-                    .limit(7);
-
-                if (error) throw error;
-
-                const posts = (data || [])
-                    .filter(item => !Number.isNaN(currentId) ? item.id !== currentId : true)
-                    .slice(0, 4);
-
-                if (!posts.length) {
-                    listEl.innerHTML = '<li class="popular-item"><a href="blog.html"><img src="../assets/images/nu-logo.png" alt="Thumbnail berita"><div><p class="popular-item-title">Belum ada berita lain.</p><p class="popular-item-date">-</p></div></a></li>';
-                    return;
-                }
-
-                listEl.innerHTML = '';
-                posts.forEach(post => {
-                    const li = document.createElement('li');
-                    li.className = 'popular-item';
-
-                    const a = document.createElement('a');
-                    a.href = `blog-detail.html?id=${encodeURIComponent(post.id)}`;
-
-                    const image = document.createElement('img');
-                    image.src = (post.gambar_url || '').trim() || fallbackImagePath;
-                    image.alt = post.blog_title || 'Thumbnail berita';
-                    image.loading = 'lazy';
-                    image.onerror = function onImageError() {
-                        this.src = fallbackImagePath;
-                    };
-
-                    const textWrap = document.createElement('div');
-                    const title = document.createElement('p');
-                    title.className = 'popular-item-title';
-                    title.textContent = post.blog_title || 'Tanpa Judul';
-
-                    const date = document.createElement('p');
-                    date.className = 'popular-item-date';
-                    date.textContent = formatTanggalPendek(post.tanggal);
-
-                    textWrap.appendChild(title);
-                    textWrap.appendChild(date);
-                    a.appendChild(image);
-                    a.appendChild(textWrap);
-                    li.appendChild(a);
-                    listEl.appendChild(li);
-                });
-            } catch (error) {
-                console.error('Gagal memuat berita populer:', error);
-                listEl.innerHTML = '<li class="popular-item"><a href="blog.html"><img src="../assets/images/nu-logo.png" alt="Thumbnail berita"><div><p class="popular-item-title">Gagal memuat berita populer.</p><p class="popular-item-date">-</p></div></a></li>';
-            }
-        }
-
-        function setupShareLinks() {
-            const encodedUrl = encodeURIComponent(window.location.href);
-            const encodedTitle = encodeURIComponent(document.title || 'Berita MWCNU');
-            const facebookEl = document.querySelector('#share-facebook');
-            const twitterEl = document.querySelector('#share-twitter');
-            const whatsappEl = document.querySelector('#share-whatsapp');
-            if (facebookEl) facebookEl.href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-            if (twitterEl) twitterEl.href = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
-            if (whatsappEl) whatsappEl.href = `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`;
-        }
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            await tampilkanDetailBlog();
-            updateBreadcrumbTitle();
-            muatBeritaPopuler();
-            setupShareLinks();
-        });
-    </script>
+    <a href="https://wa.me/6281280080275" class="floating-whatsapp" target="_blank" aria-label="Chat WhatsApp"><i class="fab fa-whatsapp"></i></a>
 </body>
-</html>
 
+</html>

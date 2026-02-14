@@ -508,6 +508,16 @@ section h3 {
     color: var(--primary-color);
 }
 
+.school-contact-card .school-icon i {
+    font-size: 1em;
+    color: inherit;
+}
+
+.school-contact-card .school-contact-item i {
+    font-size: 1em;
+    color: var(--primary-dark);
+}
+
 /* ========================================
    STATS - MOBILE
    ======================================== */
