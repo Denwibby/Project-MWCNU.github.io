@@ -320,6 +320,84 @@ body {
     box-shadow: var(--shadow-md);
 }
 
+/* Hero Sections - responsive sizing by viewport */
+@media (max-width: 1023px) {
+    .sd-page .hero-section-school.hero-section-sd,
+    .mts-page .hero-section-school.hero-section-mts,
+    .smk-page .hero-section-school.hero-section-smk {
+        padding-top: clamp(180px, 24vw, 210px);
+    }
+
+    .sd-page .hero-section-school.hero-section-sd .hero-logo {
+        width: clamp(120px, 16vw, 138px);
+        height: auto;
+        max-width: 100%;
+    }
+
+    .mts-page .hero-section-school.hero-section-mts .hero-logo {
+        width: clamp(120px, 16vw, 138px);
+        height: auto;
+        max-width: 100%;
+    }
+
+    .smk-page .hero-section-school.hero-section-smk .hero-logo {
+        width: clamp(132px, 18vw, 156px);
+        height: auto;
+        max-width: 100%;
+    }
+
+    .tk-page .hero-section-school.hero-section-tk {
+        padding-top: clamp(180px, 24vw, 210px);
+    }
+
+    .tk-page .hero-section-school.hero-section-tk .hero-logo {
+        width: clamp(120px, 16vw, 138px);
+        height: auto;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    .sd-page .hero-section-school.hero-section-sd,
+    .mts-page .hero-section-school.hero-section-mts,
+    .smk-page .hero-section-school.hero-section-smk {
+        padding-top: clamp(140px, 36vw, 170px);
+    }
+
+    .sd-page .hero-section-school.hero-section-sd .hero-logo {
+        width: clamp(92px, 28vw, 112px);
+        top: 16px;
+        height: auto;
+        max-width: 100%;
+    }
+
+    .mts-page .hero-section-school.hero-section-mts .hero-logo {
+        width: clamp(92px, 28vw, 112px);
+        top: 16px;
+        height: auto;
+        max-width: 100%;
+    }
+
+    .smk-page .hero-section-school.hero-section-smk .hero-logo {
+        width: clamp(106px, 30vw, 126px);
+        top: 16px;
+        height: auto;
+        max-width: 100%;
+    }
+
+    .tk-page .hero-section-school.hero-section-tk {
+        padding-top: clamp(140px, 36vw, 170px);
+    }
+
+    .tk-page .hero-section-school.hero-section-tk .hero-logo {
+        width: clamp(92px, 28vw, 112px);
+        top: 16px;
+        height: auto;
+        max-width: 100%;
+    }
+}
+
+
 /* ========================================
    SECTIONS - MOBILE
    ======================================== */

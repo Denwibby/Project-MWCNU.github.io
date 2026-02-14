@@ -851,11 +851,18 @@ nav a.active {
     background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
     color: #fff;
     padding: 80px 20px;
+    padding-top: 180px; /* Give space for logo at top */
     text-align: center;
     border-radius: 12px;
     margin: 20px;
     position: relative;
     overflow: hidden;
+}
+
+/* Hero content wrapper for proper z-index layering */
+.hero-section-school .hero-content {
+    position: relative;
+    z-index: 1;
 }
 
 .sd-page .hero-section-school::before {
@@ -925,47 +932,159 @@ nav a.active {
     z-index: 2;
 }
 
-.sd-page .hero-section-school .hero-logo {
-    background-image: url('../assets/images/sd-logo.png');
-}
-
-
-
-.smk-page .hero-section-school .hero-logo {
-    background-image: url('../assets/images/smk-logo.png');
-}
-
 .hero-section-school .hero-logo {
     position: absolute;
     top: 20px;
     left: 20px;
-    padding: 10px;
     border-radius: 8px;
     z-index: 3;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
+    display: block;
+    object-fit: contain;
+    background: none;
 }
 
 .sd-page .hero-section-school .hero-logo {
-    width: 100px;
-    height: 100px;
+    width: clamp(140px, 11vw, 156px);
+    height: clamp(140px, 11vw, 156px);
+    max-width: 100%;
 }
 
 .mts-page .hero-section-school .hero-logo {
-    width: 120px;
-    height: 120px;
+    width: clamp(140px, 11vw, 156px);
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-width: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 .tk-page .hero-section-school .hero-logo {
-    width: 120px;
-    height: 120px;
+    width: clamp(140px, 12vw, 160px);
+    height: auto;
+    aspect-ratio: 1 / 1;
     object-fit: contain;
+    max-width: 100%;
+    display: block;
 }
 .smk-page .hero-section-school .hero-logo {
-    width: 140px;
-    height: 90px;
+    width: clamp(150px, 13vw, 178px);
+    height: clamp(95px, 8vw, 112px);
+    max-width: 100%;
 }
+
+.sd-page .hero-section-school,
+.mts-page .hero-section-school,
+.smk-page .hero-section-school {
+    padding-top: clamp(210px, 16vw, 240px);
+}
+
+.tk-page .hero-section-school.hero-section-tk {
+    position: relative;
+    padding-top: clamp(220px, 18vw, 250px);
+}
+
+.tk-page .hero-section-school.hero-section-tk .hero-logo {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+.tk-page .hero-section-school.hero-section-tk .hero-content {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    padding-top: 12px;
+}
+
+.tk-page .hero-section-school.hero-section-tk h2,
+.tk-page .hero-section-school.hero-section-tk p {
+    position: relative;
+    z-index: 2;
+}
+
+/* SD Hero Section */
+.sd-page .hero-section-school.hero-section-sd {
+    position: relative;
+    padding-top: clamp(220px, 18vw, 250px);
+}
+
+.sd-page .hero-section-school.hero-section-sd .hero-logo {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+.sd-page .hero-section-school.hero-section-sd .hero-content {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    padding-top: 12px;
+}
+
+.sd-page .hero-section-school.hero-section-sd h2,
+.sd-page .hero-section-school.hero-section-sd p {
+    position: relative;
+    z-index: 2;
+}
+
+/* MTs Hero Section */
+.mts-page .hero-section-school.hero-section-mts {
+    position: relative;
+    padding-top: clamp(220px, 18vw, 250px);
+}
+
+.mts-page .hero-section-school.hero-section-mts .hero-logo {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+.mts-page .hero-section-school.hero-section-mts .hero-content {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    padding-top: 12px;
+}
+
+.mts-page .hero-section-school.hero-section-mts h2,
+.mts-page .hero-section-school.hero-section-mts p {
+    position: relative;
+    z-index: 2;
+}
+
+/* SMK Hero Section */
+.smk-page .hero-section-school.hero-section-smk {
+    position: relative;
+    padding-top: clamp(220px, 18vw, 250px);
+}
+
+.smk-page .hero-section-school.hero-section-smk .hero-logo {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+}
+
+.smk-page .hero-section-school.hero-section-smk .hero-content {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    padding-top: 12px;
+}
+
+.smk-page .hero-section-school.hero-section-smk h2,
+.smk-page .hero-section-school.hero-section-smk p {
+    position: relative;
+    z-index: 2;
+}
+
 
 .hero-section-school h2 {
     font-size: 2.2em;
@@ -1383,6 +1502,10 @@ h4 .fa-icon-green {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .smk-page .hero-section-school {
+        padding-top: 150px;
+    }
+
     .mission-grid {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -1495,4 +1618,3 @@ h4 .fa-icon-green {
         padding: 20px 18px;
     }
 }
-
