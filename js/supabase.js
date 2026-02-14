@@ -1,7 +1,7 @@
 // Konfigurasi Supabase menggunakan CDN @supabase/supabase-js
 // Ganti dengan URL dan key Supabase Anda yang sebenarnya
-const supabaseUrl = 'https://rgaozqsrkpiwffzxcyiy.supabase.co'; // Ganti dengan URL Supabase Anda
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnYW96cXNya3Bpd2ZmenhjeWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4ODMxMTQsImV4cCI6MjA4NjQ1OTExNH0.WDVGqr9riRsZVrR5tiGu1TFdr_ciaPrKS0b_y60Mpbc'; // Ganti dengan anon key Supabase Anda
+const supabaseUrl = 'https://pjgtefuogurhpkqwgabo.supabase.co'; // Ganti dengan URL Supabase Anda
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ3RlZnVvZ3VyaHBrcXdnYWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ3OTksImV4cCI6MjA4NjU4MDc5OX0.8lywIvOzP5VQPm5ouMlr_8ChKKJ3SvyWBXW-OViQ9os'; // Ganti dengan anon key Supabase Anda
 
 // Inisialisasi koneksi ke Supabase
 var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -121,7 +121,7 @@ async function tampilkanBlog() {
         // Mengambil data dari tabel 'blog' di Supabase
         const { data: posts, error } = await supabase
             .from('blog')
-            .select('blog_title, blog_content, gambar_url, tanggal')
+            .select('id, blog_title, blog_content, tanggal, gambar_url')
             .order('tanggal', { ascending: false }); // Mengurutkan berdasarkan tanggal terbaru
 
         if (error) {
@@ -131,6 +131,8 @@ async function tampilkanBlog() {
 
         // Mengambil container untuk menampilkan blog
         const container = document.querySelector('#blog-posts');
+        const latestContainer = document.querySelector('#latest-posts');
+        const categoryContainer = document.querySelector('#blog-categories');
 
         if (!container) {
             console.warn('Container #blog-posts tidak ditemukan');
@@ -139,10 +141,44 @@ async function tampilkanBlog() {
 
         // Mengosongkan container sebelum menampilkan data baru
         container.innerHTML = '';
+        if (latestContainer) latestContainer.innerHTML = '';
+        if (categoryContainer) categoryContainer.innerHTML = '';
 
         if (!posts || posts.length === 0) {
-            container.innerHTML = '<p>Belum ada postingan blog.</p>';
+            container.innerHTML = '<p class="blog-state">Belum ada postingan blog.</p>';
+            if (latestContainer) latestContainer.innerHTML = '<li class="blog-state">Belum ada berita terbaru.</li>';
+            if (categoryContainer) categoryContainer.innerHTML = '<li class="blog-state">Kategori belum tersedia.</li>';
             return;
+        }
+
+        const fallbackImagePath = window.location.pathname.includes('/pages/')
+            ? '../assets/images/nu-logo.png'
+            : 'assets/images/nu-logo.png';
+        const categoryCounter = {};
+
+        function inferKategori(post) {
+            const text = `${post.blog_title || ''} ${post.blog_content || ''}`.toLowerCase();
+            if (text.includes('pengumuman')) return 'Pengumuman';
+            if (text.includes('kegiatan')) return 'Kegiatan';
+            if (text.includes('program')) return 'Program';
+            if (text.includes('pendaftaran')) return 'Pendaftaran';
+            if (text.includes('pendidikan') || text.includes('sekolah')) return 'Pendidikan';
+            return 'Umum';
+        }
+
+        function formatTanggalIndonesia(value) {
+            if (!value) return '-';
+            return new Date(value).toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function ringkasKonten(text, maxLength = 220) {
+            const raw = (text || '').replace(/<[^>]*>/g, '').trim();
+            if (raw.length <= maxLength) return raw;
+            return `${raw.slice(0, maxLength).trimEnd()}...`;
         }
 
         // Menampilkan setiap postingan blog
@@ -151,30 +187,144 @@ async function tampilkanBlog() {
             postElement.className = 'blog-post';
 
             // Format tanggal
-            const tanggal = new Date(post.tanggal).toLocaleDateString('id-ID', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+            const tanggal = formatTanggalIndonesia(post.tanggal);
+            const judul = post.blog_title || 'Tanpa Judul';
+            const konten = post.blog_content || '';
+            const gambar = post.gambar_url && post.gambar_url.trim() ? post.gambar_url : fallbackImagePath;
+            const detailUrl = `blog-detail.html?id=${encodeURIComponent(post.id)}`;
+            const kategori = inferKategori(post);
+            categoryCounter[kategori] = (categoryCounter[kategori] || 0) + 1;
 
             postElement.innerHTML = `
-                <h3>${post.blog_title}</h3>
+                <a href="${detailUrl}" aria-label="Buka detail blog ${judul}">
+                    <img src="${gambar}" alt="${judul}" class="post-image" loading="lazy" onerror="this.src='${fallbackImagePath}'">
+                </a>
+                <h3 class="blog-post-title"><a href="${detailUrl}" style="color:inherit;text-decoration:none;">${judul}</a></h3>
                 <p class="post-date">${tanggal}</p>
-                ${post.gambar_url ? `<img src="${post.gambar_url}" alt="${post.blog_title}" class="post-image">` : ''}
-                <div class="post-content">${post.blog_content}</div>
+                <div class="post-content">${ringkasKonten(konten)}</div>
+                <a href="${detailUrl}" class="button" style="margin-top:12px;">Baca Selengkapnya</a>
             `;
 
             container.appendChild(postElement);
         });
 
+        if (latestContainer) {
+            posts.slice(0, 8).forEach(post => {
+                const item = document.createElement('li');
+                item.innerHTML = `<a href="blog-detail.html?id=${encodeURIComponent(post.id)}" class="latest-title">${post.blog_title || 'Tanpa Judul'}</a>`;
+                latestContainer.appendChild(item);
+            });
+        }
+
+        if (categoryContainer) {
+            Object.entries(categoryCounter).forEach(([nama, jumlah]) => {
+                const item = document.createElement('li');
+                item.textContent = `${nama} (${jumlah})`;
+                categoryContainer.appendChild(item);
+            });
+        }
     } catch (error) {
         console.error('Terjadi kesalahan saat menampilkan blog:', error);
 
         // Menampilkan pesan error di container
         const container = document.querySelector('#blog-posts');
+        const latestContainer = document.querySelector('#latest-posts');
+        const categoryContainer = document.querySelector('#blog-categories');
         if (container) {
-            container.innerHTML = '<p>Terjadi kesalahan saat memuat blog. Silakan coba lagi nanti.</p>';
+            container.innerHTML = '<p class="blog-state">Terjadi kesalahan saat memuat blog. Silakan coba lagi nanti.</p>';
         }
+        if (latestContainer) latestContainer.innerHTML = '<li class="blog-state">Gagal memuat berita terbaru.</li>';
+        if (categoryContainer) categoryContainer.innerHTML = '<li class="blog-state">Gagal memuat kategori.</li>';
+    }
+}
+
+async function tampilkanDetailBlog() {
+    const titleEl = document.querySelector('#detail-title');
+    const dateEl = document.querySelector('#detail-date');
+    const imageEl = document.querySelector('#detail-image');
+    const contentEl = document.querySelector('#detail-content');
+    const loadingEl = document.querySelector('#detail-loading');
+    const errorEl = document.querySelector('#detail-error');
+    const fallbackImagePath = '../assets/images/nu-logo.png';
+
+    if (!titleEl || !dateEl || !imageEl || !contentEl) {
+        console.warn('Elemen detail blog tidak lengkap.');
+        return;
+    }
+
+    function setLoading(isLoading) {
+        if (loadingEl) loadingEl.style.display = isLoading ? 'block' : 'none';
+    }
+
+    function setError(message) {
+        if (!errorEl) return;
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+    }
+
+    function formatTanggal(value) {
+        if (!value) return '-';
+        return new Date(value).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    function renderKonten(konten) {
+        const raw = (konten || '').trim();
+        if (!raw) return '<p>Konten belum tersedia.</p>';
+        const escaped = raw
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        return escaped
+            .split(/\n{2,}/)
+            .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+            .join('');
+    }
+
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const idParam = params.get('id');
+        const id = Number(idParam);
+
+        if (!idParam || Number.isNaN(id)) {
+            setError('ID blog tidak valid.');
+            return;
+        }
+
+        setLoading(true);
+
+        const { data: post, error } = await supabase
+            .from('blog')
+            .select('id, blog_title, blog_content, tanggal, gambar_url')
+            .eq('id', id)
+            .single();
+
+        if (error || !post) {
+            console.error('Error mengambil detail blog:', error);
+            setError('Blog tidak ditemukan atau gagal dimuat.');
+            return;
+        }
+
+        titleEl.textContent = post.blog_title || 'Tanpa Judul';
+        dateEl.textContent = formatTanggal(post.tanggal);
+        imageEl.src = post.gambar_url && post.gambar_url.trim() ? post.gambar_url : fallbackImagePath;
+        imageEl.alt = post.blog_title || 'Gambar blog';
+        imageEl.onerror = function onImageError() {
+            this.src = fallbackImagePath;
+        };
+        contentEl.innerHTML = renderKonten(post.blog_content);
+
+        document.title = `${post.blog_title || 'Detail Blog'} - MWCNU`;
+    } catch (error) {
+        console.error('Terjadi kesalahan saat menampilkan detail blog:', error);
+        setError('Terjadi kesalahan saat memuat detail blog.');
+    } finally {
+        setLoading(false);
     }
 }
 
@@ -267,7 +417,8 @@ if (typeof module !== 'undefined' && module.exports) {
         testKoneksiSupabase,
         hapusBlog,
         simpanBlog,
-        ambilSemuaBlog
+        ambilSemuaBlog,
+        tampilkanDetailBlog
     };
 }
 
@@ -278,6 +429,7 @@ window.testKoneksiSupabase = testKoneksiSupabase;
 window.simpanBlog = simpanBlog;
 window.hapusBlog = hapusBlog;
 window.ambilSemuaBlog = ambilSemuaBlog;
+window.tampilkanDetailBlog = tampilkanDetailBlog;
 
 // Fungsi untuk mengunggah gambar ke Supabase Storage
 async function uploadImageToSupabase(file) {
@@ -363,8 +515,8 @@ async function simpanBlogDenganGambar(judul, konten, fileGambar) {
 
         // Menyiapkan data blog
         const dataBlog = {
-            judul: judul,
-            konten: konten,
+            blog_title: judul,
+            blog_content: konten,
             gambar_url: gambarUrl,
             tanggal: new Date().toISOString()
         };

@@ -9,6 +9,7 @@ const ADMIN_CREDENTIALS = {
 // Login state
 let isLoggedIn = false;
 let registrationsChannel = null;
+let confirmModalState = null;
 
 function normalizeJenjang(value) {
     const raw = (value || '').toString().trim().toLowerCase();
@@ -50,6 +51,17 @@ async function getRegistrations() {
 }
 
 async function deleteRegistration(id) {
+    const confirmed = await showDeleteConfirmModal({
+        title: 'Konfirmasi Hapus Data',
+        message: 'Data siswa akan dihapus permanen dari Registration Management. Lanjutkan?',
+        confirmText: 'Ya, Hapus',
+        cancelText: 'Batal'
+    });
+
+    if (!confirmed) {
+        return false;
+    }
+
     try {
         const { error } = await supabase
             .from('Pendaftaran')
@@ -70,6 +82,93 @@ async function deleteRegistration(id) {
         console.error('Error deleting registration:', error);
         return false;
     }
+}
+
+function showDeleteConfirmModal(options = {}) {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const messageEl = document.getElementById('confirm-modal-message');
+    const confirmBtn = document.getElementById('confirm-modal-confirm');
+    const cancelBtn = document.getElementById('confirm-modal-cancel');
+
+    if (!modal || !confirmBtn || !cancelBtn) {
+        const fallbackMessage = options.message || 'Yakin ingin menghapus data ini?';
+        return Promise.resolve(window.confirm(fallbackMessage));
+    }
+
+    if (confirmModalState && typeof confirmModalState.resolve === 'function') {
+        confirmModalState.resolve(false);
+    }
+
+    return new Promise(resolve => {
+        const title = options.title || 'Konfirmasi';
+        const message = options.message || 'Yakin ingin melanjutkan tindakan ini?';
+        const confirmText = options.confirmText || 'Hapus';
+        const cancelText = options.cancelText || 'Batal';
+        const showCancel = options.showCancel !== false;
+        const tone = options.tone || 'danger';
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+        confirmBtn.textContent = confirmText;
+        cancelBtn.textContent = cancelText;
+        cancelBtn.style.display = showCancel ? 'inline-flex' : 'none';
+        confirmBtn.classList.toggle('confirm-btn-success', tone === 'success');
+        confirmBtn.classList.toggle('confirm-btn-danger', tone !== 'success');
+
+        modal.hidden = false;
+        document.body.classList.add('modal-open');
+
+        const cleanup = () => {
+            modal.hidden = true;
+            document.body.classList.remove('modal-open');
+            confirmBtn.onclick = null;
+            cancelBtn.onclick = null;
+            modal.onclick = null;
+            cancelBtn.style.display = '';
+            confirmBtn.classList.remove('confirm-btn-success');
+            confirmBtn.classList.remove('confirm-btn-danger');
+            document.removeEventListener('keydown', onKeyDown);
+            confirmModalState = null;
+        };
+
+        const handleResolve = value => {
+            cleanup();
+            resolve(value);
+        };
+
+        const onKeyDown = event => {
+            if (event.key === 'Escape') {
+                handleResolve(false);
+            }
+        };
+
+        confirmBtn.onclick = () => handleResolve(true);
+        cancelBtn.onclick = () => handleResolve(false);
+        modal.onclick = event => {
+            if (event.target === modal) {
+                handleResolve(false);
+            }
+        };
+        document.addEventListener('keydown', onKeyDown);
+        if (showCancel) {
+            cancelBtn.focus();
+        } else {
+            confirmBtn.focus();
+        }
+
+        confirmModalState = { resolve: handleResolve };
+    });
+}
+
+function showInfoModal(options = {}) {
+    return showDeleteConfirmModal({
+        title: options.title || 'Informasi',
+        message: options.message || '',
+        confirmText: options.confirmText || 'OK',
+        showCancel: false,
+        tone: options.tone || 'success'
+    });
 }
 
 function getRegistrationsByProgram(registrations, program) {
@@ -314,3 +413,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+window.showDeleteConfirmModal = showDeleteConfirmModal;
+window.showInfoModal = showInfoModal;

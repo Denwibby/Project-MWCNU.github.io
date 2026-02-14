@@ -9,37 +9,134 @@
     <link rel="stylesheet" href="../css/mobile-override.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --blog-accent: #0b6156;
+            --blog-accent-dark: #0a5249;
+            --blog-title: #1f2937;
+            --blog-card-bg: #ffffff;
+            --blog-border: #dbe6e4;
+            --blog-muted: #5f6b73;
+        }
+        .blog-layout {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .blog-main {
+            min-width: 0;
+        }
         .blog-post {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-left: 4px solid #4CAF50;
-            border-radius: 8px;
-            padding: 25px;
-            margin: 20px 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
+            background: var(--blog-card-bg);
+            border: 1px solid var(--blog-border);
+            border-radius: 12px;
+            padding: 22px;
+            margin: 0 0 20px;
+            box-shadow: 0 6px 16px rgba(15, 35, 40, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .blog-post:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(15, 35, 40, 0.12);
         }
-        .blog-post h3 {
-            color: #4CAF50;
-            margin-top: 0;
-            margin-bottom: 10px;
+        .blog-post h3,
+        .blog-post-title {
+            color: var(--blog-title);
+            margin: 0;
+            font-size: 1.45rem;
+            line-height: 1.3;
         }
         .post-date {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 15px;
+            color: var(--blog-muted);
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            margin: 10px 0 14px;
         }
         .post-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin: 15px 0;
+            width: 100%;
+            display: block;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 0 0 16px;
+            border: 1px solid #edf1f3;
         }
         .post-content {
             line-height: 1.6;
+            color: #253038;
+            word-break: break-word;
+        }
+        .blog-sidebar {
+            position: sticky;
+            top: 96px;
+        }
+        .sidebar-card {
+            background: #fff;
+            border: 1px solid var(--blog-border);
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(15, 35, 40, 0.06);
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+        .sidebar-title {
+            margin: 0 0 12px;
+            color: var(--blog-accent);
+            font-size: 1.02rem;
+            font-weight: 700;
+            border-bottom: 2px solid #e6efed;
+            padding-bottom: 8px;
+        }
+        .latest-list,
+        .category-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .latest-list li {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #dfe6e4;
+        }
+        .latest-list li:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .latest-title {
+            font-size: 0.86rem;
+            color: #29434d;
+            line-height: 1.5;
+            text-decoration: none;
+        }
+        .latest-title:hover {
+            color: var(--blog-accent);
+        }
+        .category-list li {
+            color: #29434d;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        .category-list li:last-child {
+            margin-bottom: 0;
+        }
+        .blog-state {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px;
+            color: #475569;
+        }
+        @media (max-width: 992px) {
+            .blog-layout {
+                grid-template-columns: 1fr;
+            }
+            .blog-sidebar {
+                position: static;
+            }
+            .post-image {
+                height: 220px;
+            }
         }
     </style>
 </head>
@@ -96,14 +193,88 @@
 
         <!-- Blog Posts -->
         <section>
-            <h2><i class="fas fa-newspaper fa-icon-green"></i> Latest Posts</h2>
-            <div id="blog-posts">
-                <!-- Blog posts will be rendered here by JavaScript -->
+            <h2 style="color: var(--blog-accent);"><i class="fas fa-newspaper"></i> Berita & Artikel</h2>
+            <div class="blog-layout">
+                <div class="blog-main">
+                    <div id="blog-posts" aria-live="polite">
+                        <!-- Blog posts will be rendered here by JavaScript -->
+                    </div>
+                </div>
+
+                <aside class="blog-sidebar">
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">Berita Terbaru</h3>
+                        <ul id="latest-posts" class="latest-list">
+                            <li class="blog-state">Memuat berita terbaru...</li>
+                        </ul>
+                    </div>
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-title">Kategori</h3>
+                        <ul id="blog-categories" class="category-list">
+                            <li class="blog-state">Memuat kategori...</li>
+                        </ul>
+                    </div>
+                </aside>
             </div>
         </section>
     </main>
-    <footer>
-        <p>&copy; 2023 Majelis Wakil Cabang Nahdlatul Ulama. All rights reserved.</p>
+    <footer class="site-footer-modern">
+        <div class="site-footer-inner">
+            <div>
+                <div class="site-footer-brand">
+                    <img src="../assets/images/nu-logo.png" alt="Logo MWCNU">
+                    <h3>MWCNU Tanggulangin</h3>
+                </div>
+                <p>Membangun generasi berakhlak, unggul, dan siap menghadapi masa depan.</p>
+                <div class="site-footer-social">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4>Tautan Cepat</h4>
+                <ul>
+                    <li><a href="../index.html">Beranda</a></li>
+                    <li><a href="../index.html#visi-misi">Visi & Misi</a></li>
+                    <li><a href="blog.html">Berita</a></li>
+                    <li><a href="contact.html">Kontak</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Akademik</h4>
+                <ul>
+                    <li><a href="tk.html">Taman Kanak-Kanak (TK)</a></li>
+                    <li><a href="sd-maarif.html">Sekolah Dasar Maarif (SD)</a></li>
+                    <li><a href="mts.html">Madrasah Tsanawiyah (MTs)</a></li>
+                    <li><a href="smk.html">Sekolah Menengah Kejuruan (SMK)</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Hubungi Kami</h4>
+                <div class="site-contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>Jl. Raya Tanggulangin, Sidoarjo, Jawa Timur</p>
+                </div>
+                <div class="site-contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <p>(031) 8960 000 / 0812-8008-0275</p>
+                </div>
+                <div class="site-contact-item">
+                    <i class="far fa-envelope"></i>
+                    <p>info@mwcnu-tanggulangin.sch.id</p>
+                </div>
+            </div>
+        </div>
+        <div class="site-footer-bottom">
+            <div class="site-footer-bottom-inner">
+                <p>&copy; 2026 MWCNU Tanggulangin. All rights reserved.</p>
+                <div class="site-footer-policy">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+        </div>
     </footer>
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -1,14 +1,23 @@
-# TODO - Registration Statistics Fix
+# TODO - Blog Page Implementation
 
-## Problem
-- Statistics showing 0 because of mismatch between:
-  - Stored jenjang values: "Taman Kanak-Kanak (TK)", "Sekolah Dasar Maarif (SD)", "Madrasah Tsanawiyah (MTs)", "Sekolah Menengah Kejuruan (SMK)"
-  - Filter values in admin.js: "TK", "SD", "MTs", "SMK"
+## Task: Create Blog Page with Supabase Integration
 
-## Solution
-- Update js/admin.js to filter using full jenjang names that are actually stored
+### Requirements:
+- 2-column grid layout: 75% articles, 25% sidebar
+- Blog cards with image at top (rounded corners)
+- Dark elegant title color
+- Date in CAPITAL format (e.g., FEBRUARY 13, 2026)
+- Fallback image (organization logo) when gambar_url is empty
+- Sidebar with "Berita Terbaru" and "Kategori"
+- async/await for data loading
+- try-catch error handling (already exists)
 
-## Tasks
-- [x] Analyze the root cause of statistics showing 0
-- [ ] Update admin.js filtering logic to match stored values
-- [ ] Test the fix
+### Implementation Steps:
+
+- [ ] 1. Update `pages/blog.html` - Add 2-column grid layout with sidebar structure
+- [ ] 2. Add custom CSS for blog cards and sidebar styling
+- [ ] 3. Update `js/supabase.js` - Modify `tampilkanBlog()` function:
+      - Add fallback image logic
+      - Format date in CAPITAL format
+      - Render sidebar with recent article titles
+- [ ] 4. Test the implementation
