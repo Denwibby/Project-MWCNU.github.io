@@ -70,6 +70,46 @@ body {
     min-height: 100vh;
     color: #333;
     overflow-x: hidden;
+    position: relative;
+}
+
+/* Decorative Background Layer - Islamic Geometric Pattern */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 1;
+    background-image: 
+        radial-gradient(circle at 10% 20%, #4CAF50 2px, transparent 2px),
+        radial-gradient(circle at 90% 80%, #4CAF50 2px, transparent 2px),
+        radial-gradient(circle at 50% 50%, #2e7d32 1px, transparent 1px),
+        radial-gradient(circle at 25% 75%, #4CAF50 1.5px, transparent 1.5px),
+        radial-gradient(circle at 75% 25%, #2e7d32 1.5px, transparent 1.5px);
+    background-size: 60px 60px, 100px 100px, 30px 30px, 80px 80px, 90px 90px;
+    background-position: 0 0, 50px 50px, 0 0, 20px 20px, 40px 40px;
+}
+
+/* Additional decorative layer */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.08;
+    background-image: 
+        radial-gradient(circle, #1a5f7a 2px, transparent 2px),
+        repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(76, 175, 80, 0.15) 30px, rgba(76, 175, 80, 0.15) 31px),
+        repeating-linear-gradient(-45deg, transparent, transparent 30px, rgba(76, 175, 80, 0.15) 30px, rgba(76, 175, 80, 0.15) 31px);
+    background-size: 25px 25px, 80px 80px, 80px 80px;
 }
 
 /* Top Info Bar */
