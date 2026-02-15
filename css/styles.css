@@ -222,10 +222,10 @@ body {
 /* Login Button in Navbar */
 .login-btn-nav {
     background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
-    color: white !important;
+    color: rgb(0, 0, 0) !important;
     padding: 8px 16px;
     border-radius: 20px;
-    font-weight: 600;
+    font-weight: 600;   
     transition: all 0.3s ease;
     box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
 }
@@ -234,7 +234,7 @@ body {
     background: linear-gradient(135deg, #45a049 0%, #2d6f29 100%);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-    color: white !important;
+    color: #2e7d32 !important;
 }
 
 .login-btn-nav i {
