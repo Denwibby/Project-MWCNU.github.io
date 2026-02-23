@@ -1,21 +1,40 @@
 // PDF Export functionality using jsPDF
 // Exports registration data to PDF format
+// Migrated from Supabase to PHP API
+
+// Helper function for API requests
+async function apiRequest(endpoint, options = {}) {
+    const defaultOptions = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
+    
+    const config = { ...defaultOptions, ...options };
+    const API_BASE_URL = window.location.origin + '/api';
+    
+    try {
+        const response = await fetch(API_BASE_URL + endpoint, config);
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || result.message);
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('API Request Error:', error);
+        throw error;
+    }
+}
 
 // Function to export a single registration to PDF
 async function exportToPDF(registrationId) {
     try {
-        // Get registration data from Supabase
-        const { data: registration, error } = await supabase
-            .from('Pendaftaran')
-            .select('*')
-            .eq('id', registrationId)
-            .single();
-
-        if (error) {
-            console.error('Error fetching registration:', error);
-            alert('Failed to load registration data');
-            return;
-        }
+        // Get registration data from PHP API
+        const result = await apiRequest('/pendaftaran?id=' + registrationId);
+        const registration = result.data;
 
         if (!registration) {
             alert('Registration not found');
@@ -60,7 +79,9 @@ async function exportToPDF(registrationId) {
             ['Email Ortu', registration.email_ortu]
         ];
 
-        fields.forEach(([label, value]) => {
+        fields.forEach(function(field) {
+            const label = field[0];
+            const value = field[1];
             doc.setFont(undefined, 'bold');
             doc.text(label + ':', 20, y);
             doc.setFont(undefined, 'normal');
@@ -75,7 +96,10 @@ async function exportToPDF(registrationId) {
         doc.text('Dicetak pada: ' + date, 105, 280, { align: 'center' });
 
         // Save PDF
-        doc.save('pendaftaran_' + registration.nama_laporan.replace(/\s+/g, '_') + '.pdf');
+        var filename = registration.nama_lengkap ? 
+            'pendaftaran_' + registration.nama_lengkap.replace(/\s+/g, '_') + '.pdf' : 
+            'pendaftaran_' + registrationId + '.pdf';
+        doc.save(filename);
 
     } catch (error) {
         console.error('Error exporting PDF:', error);
@@ -87,36 +111,28 @@ async function exportToPDF(registrationId) {
 async function exportAllRegistrations() {
     try {
         // Show loading indicator
-        const exportBtn = document.querySelector('.export-all-btn');
+        var exportBtn = document.querySelector('.export-all-btn');
         if (exportBtn) {
             exportBtn.disabled = true;
             exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
         }
 
-        // Get all registrations from Supabase
-        const { data: registrations, error } = await supabase
-            .from('Pendaftaran')
-            .select('*')
-            .order('created_at', { ascending: false });
+        // Get all registrations from PHP API
+        var result = await apiRequest('/pendaftaran');
+        var registrations = result.data || [];
 
-        if (error) {
-            console.error('Error fetching registrations:', error);
-            alert('Failed to load registration data');
-            return;
-        }
-
-        if (!registrations || registrations.length === 0) {
+        if (registrations.length === 0) {
             alert('No registrations found to export');
             return;
         }
 
         // Create PDF with all registrations
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+        var jsPDF = window.jspdf.jsPDF;
+        var doc = new jsPDF();
 
         // Add header
         doc.setFontSize(18);
-        doc.setTextColor(76, 175, 80); // Green color
+        doc.setTextColor(76, 175, 80);
         doc.text('MWCNU Tanggulangin', 105, 15, { align: 'center' });
         
         doc.setFontSize(14);
@@ -125,8 +141,8 @@ async function exportAllRegistrations() {
 
         doc.setFontSize(10);
         doc.setTextColor(128, 128, 128);
-        const date = new Date().toLocaleDateString('id-ID');
-        doc.text('Tanggal Export: ' + date, 105, 32, { align: 'center' });
+        var exportDate = new Date().toLocaleDateString('id-ID');
+        doc.text('Tanggal Export: ' + exportDate, 105, 32, { align: 'center' });
 
         doc.setLineWidth(0.5);
         doc.line(15, 38, 195, 38);
@@ -137,8 +153,8 @@ async function exportAllRegistrations() {
         doc.text('Total Pendaftaran: ' + registrations.length, 15, 48);
 
         // Group by jenjang
-        const groupByJenjang = registrations.reduce((acc, reg) => {
-            const jenjang = reg.jenjang || 'Unknown';
+        var groupByJenjang = registrations.reduce(function(acc, reg) {
+            var jenjang = reg.jenjang || 'Unknown';
             if (!acc[jenjang]) {
                 acc[jenjang] = [];
             }
@@ -146,12 +162,12 @@ async function exportAllRegistrations() {
             return acc;
         }, {});
 
-        let y = 58;
-        const pageHeight = 280;
-        const margin = 15;
+        var y = 58;
+        var pageHeight = 280;
+        var margin = 15;
 
         // Iterate through each jenjang group
-        Object.keys(groupByJenjang).forEach(jenjang => {
+        Object.keys(groupByJenjang).forEach(function(jenjang) {
             // Check if we need a new page
             if (y > pageHeight - 30) {
                 doc.addPage();
@@ -170,7 +186,7 @@ async function exportAllRegistrations() {
             doc.text('No.', margin, y);
             doc.text('Nama', margin + 15, y);
             doc.text('TTL', margin + 65, y);
-            doc.text(' Orang Tua', margin + 110, y);
+            doc.text('Orang Tua', margin + 110, y);
             doc.text('Telepon', margin + 160, y);
             y += 6;
 
@@ -178,16 +194,16 @@ async function exportAllRegistrations() {
 
             // Table rows
             doc.setFont(undefined, 'normal');
-            groupByJenjang[jenjang].forEach((reg, index) => {
+            groupByJenjang[jenjang].forEach(function(reg, index) {
                 if (y > pageHeight - 20) {
                     doc.addPage();
                     y = 20;
                 }
 
-                const nama = (reg.nama_lengkap || '-').substring(0, 20);
-                const ttl = (reg.tempat_lahir || '-') + ', ' + (reg.tanggal_lahir || '-').substring(0, 5);
-                const ortu = (reg.nama_ayah || '-').substring(0, 20);
-                const telp = reg.no_telp_ortu || reg.no_telp_siswa || '-';
+                var nama = (reg.nama_lengkap || '-').substring(0, 20);
+                var ttl = (reg.tempat_lahir || '-') + ', ' + (reg.tanggal_lahir || '-').substring(0, 5);
+                var ortu = (reg.nama_ayah || '-').substring(0, 20);
+                var telp = reg.no_telp_ortu || reg.no_telp_siswa || '-';
 
                 doc.text(String(index + 1) + '.', margin, y);
                 doc.text(nama, margin + 15, y);
@@ -219,7 +235,7 @@ async function exportAllRegistrations() {
         alert('Failed to export PDF. Please try again.');
         
         // Reset button on error
-        const exportBtn = document.querySelector('.export-all-btn');
+        var exportBtn = document.querySelector('.export-all-btn');
         if (exportBtn) {
             exportBtn.disabled = false;
             exportBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Export All as PDF';

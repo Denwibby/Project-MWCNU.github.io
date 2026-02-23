@@ -54,6 +54,9 @@ body {
 .logo {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .logo h1 {
@@ -74,6 +77,14 @@ body {
     font-weight: 700;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.logo-img {
+    max-height: 52px;
+    max-width: 98px;
+    width: auto;
+    height: auto;
+    flex-shrink: 0;
 }
 
 .logo i {
@@ -395,6 +406,45 @@ body {
         height: auto;
         max-width: 100%;
     }
+
+    .hero-section-school {
+        margin: 12px 8px;
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-bottom: 38px;
+    }
+
+    .hero-section-school .hero-content {
+        max-width: 100%;
+        padding-inline: 4px;
+    }
+
+    .hero-section-school h2 {
+        font-size: clamp(2rem, 8.6vw, 2.4rem);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        hyphens: auto;
+        margin-bottom: 12px;
+    }
+
+    .hero-section-school p {
+        font-size: clamp(1rem, 4.8vw, 1.15rem);
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 420px) {
+    .hero-section-school {
+        margin: 10px 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .hero-section-school h2 {
+        font-size: clamp(1.85rem, 8.2vw, 2.1rem);
+    }
 }
 
 
@@ -516,6 +566,40 @@ section h3 {
 .school-contact-card .school-contact-item i {
     font-size: 1em;
     color: var(--primary-dark);
+}
+
+@media (max-width: 420px) {
+    .header-container {
+        padding: 10px 12px;
+        gap: 6px;
+    }
+
+    .logo {
+        gap: 6px;
+    }
+
+    .logo-img {
+        max-height: 44px;
+        max-width: 82px;
+    }
+
+    .logo h1 {
+        font-size: 0.9em;
+        white-space: normal;
+        line-height: 1.15;
+        overflow: visible;
+        text-overflow: unset;
+    }
+
+    .logo-text {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+    }
+
+    .hamburger-menu {
+        padding: 4px;
+    }
 }
 
 /* ========================================
@@ -691,6 +775,11 @@ footer p {
         display: inline;
     }
 
+    .logo-img {
+        max-height: 72px;
+        max-width: 260px;
+    }
+
     /* Hide hamburger on tablet+ */
     .hamburger-menu {
         display: none;
@@ -837,6 +926,11 @@ footer p {
 
     .logo h1 {
         font-size: 1.55em;
+    }
+
+    .logo-img {
+        max-height: 80px;
+        max-width: 300px;
     }
 
     .logo {

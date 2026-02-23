@@ -1,41 +1,62 @@
 // ============================================
-// Sistem Autentikasi Admin dengan Supabase Auth
+// Sistem Autentikasi Admin dengan PHP API
+// Migrated from Supabase Auth
 // ============================================
 
+// API Base URL
+const AUTH_API_URL = window.location.origin + '/api/auth';
+
+// Helper function for auth API requests
+async function authApiRequest(action, data = {}) {
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
+    
+    // Add action to data
+    const payload = { action, ...data };
+    options.body = JSON.stringify(payload);
+    
+    try {
+        const response = await fetch(AUTH_API_URL, options);
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || result.message);
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('Auth API Error:', error);
+        throw error;
+    }
+}
+
 // Fungsi Login Admin
-// Menggunakan supabase.auth.signInWithPassword untuk autentikasi
 async function loginAdmin(email, password) {
     try {
         console.log('Attempting login with email:', email);
 
-        // Validasi input
         if (!email || !password) {
             throw new Error('Email dan password harus diisi');
         }
 
-        // Melakukan login dengan Supabase Auth
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
+        const result = await authApiRequest('login', { email, password });
 
-        if (error) {
-            console.error('Login error:', error.message);
-            throw error;
-        }
+        console.log('Login successful:', result);
 
-        console.log('Login successful:', data);
-
-        // Login berhasil, simpan session dan redirect ke admin.html
-        if (data.session) {
-            // Simpan session ke localStorage (opsional, untuk debugging)
-            localStorage.setItem('supabase_session', JSON.stringify(data.session));
+        if (result.data && result.data.token) {
+            // Simpan token ke localStorage
+            localStorage.setItem('auth_token', result.data.token);
+            localStorage.setItem('admin_info', JSON.stringify(result.data.admin));
             
-            // Redirect ke halaman admin (pages/admin.html)
+            // Redirect ke halaman admin
             window.location.href = 'pages/admin.html';
         }
 
-        return { success: true, data: data };
+        return { success: true, data: result.data };
 
     } catch (error) {
         console.error('Login failed:', error.message);
@@ -44,20 +65,15 @@ async function loginAdmin(email, password) {
 }
 
 // Fungsi Logout Admin
-// Menggunakan supabase.auth.signOut() untuk logout
 async function logoutAdmin() {
     try {
         console.log('Attempting logout...');
 
-        const { error } = await supabase.auth.signOut();
+        const result = await authApiRequest('logout');
 
-        if (error) {
-            console.error('Logout error:', error.message);
-            throw error;
-        }
-
-        // Hapus session dari localStorage
-        localStorage.removeItem('supabase_session');
+        // Hapus token dari localStorage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('admin_info');
 
         console.log('Logout successful');
 
@@ -68,30 +84,36 @@ async function logoutAdmin() {
 
     } catch (error) {
         console.error('Logout failed:', error.message);
+        // Still remove local storage even if API fails
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('admin_info');
         return { success: false, error: error.message };
     }
 }
 
-// Fungsi Cek Auth (Mendapatkan session saat ini)
-// Menggunakan supabase.auth.getSession() untuk mendapatkan session
+// Fungsi Cek Auth
 async function checkAuth() {
     try {
         console.log('Checking authentication status...');
 
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) {
-            console.error('Error getting session:', error.message);
-            throw error;
+        const token = localStorage.getItem('auth_token');
+        
+        if (!token) {
+            console.log('No token found');
+            return { isAuthenticated: false, session: null };
         }
 
-        console.log('Session data:', data);
+        // Verify token with server
+        const result = await fetch(AUTH_API_URL + '?action=check&token=' + encodeURIComponent(token));
+        const data = await result.json();
 
-        if (data.session) {
+        if (data.success) {
             console.log('User is logged in');
-            return { isAuthenticated: true, session: data.session };
+            return { isAuthenticated: true, session: data.data };
         } else {
-            console.log('User is not logged in');
+            console.log('Token invalid or expired');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('admin_info');
             return { isAuthenticated: false, session: null };
         }
 
@@ -101,22 +123,15 @@ async function checkAuth() {
     }
 }
 
-// Middleware Sederhana: Cek apakah user sudah login
-// Jika belum login, tendang balik ke login.html
+// Middleware: Cek apakah user sudah login
 async function requireAuth() {
     try {
         console.log('Running auth middleware...');
 
-        const { data, error } = await supabase.auth.getSession();
+        const authResult = await checkAuth();
 
-        if (error) {
-            console.error('Error in requireAuth:', error.message);
-            window.location.href = '../login.html';
-            return false;
-        }
-
-        if (!data.session) {
-            console.log('No session found, redirecting to login.html');
+        if (!authResult.isAuthenticated) {
+            console.log('User not authenticated, redirecting to login.html');
             window.location.href = '../login.html';
             return false;
         }
@@ -154,19 +169,16 @@ function handleLoginForm(event) {
     loginAdmin(email, password)
         .then(result => {
             if (!result.success) {
-                // Tampilkan error message
                 if (errorMessage) {
                     errorMessage.textContent = result.error || 'Login failed';
                     errorMessage.style.display = 'block';
                 }
                 
-                // Re-enable button
                 if (loginBtn) {
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Login';
                 }
             }
-            // Jika berhasil, redirect akan ditangani oleh loginAdmin
         })
         .catch(error => {
             console.error('Login error:', error);
@@ -175,7 +187,6 @@ function handleLoginForm(event) {
                 errorMessage.style.display = 'block';
             }
             
-            // Re-enable button
             if (loginBtn) {
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Login';
@@ -193,24 +204,20 @@ function handleLogout(event) {
         .then(result => {
             if (!result.success) {
                 console.error('Logout failed:', result.error);
-                alert('Logout gagal: ' + result.error);
             }
         })
         .catch(error => {
             console.error('Logout error:', error);
-            alert('Terjadi kesalahan saat logout');
         });
 }
 
 // Event listener untuk inisialisasi
 document.addEventListener('DOMContentLoaded', function() {
-    // Cek jika ada form login
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginForm);
     }
 
-    // Cek jika ada tombol logout
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);

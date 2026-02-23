@@ -1,15 +1,36 @@
-// Admin functionality using Supabase for data management
+// Admin functionality using PHP API for data management
+// Migrated from Supabase
 
-// Default admin credentials (in production, this should be server-side)
-const ADMIN_CREDENTIALS = {
-    username: 'admin',
-    password: 'mwcnu2024'
-};
-
-// Login state
-let isLoggedIn = false;
-let registrationsChannel = null;
 let confirmModalState = null;
+
+// API Base URL
+const ADMIN_API_URL = window.location.origin + '/api';
+
+// Helper function for API requests
+async function apiRequest(endpoint, options = {}) {
+    const defaultOptions = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
+    
+    const config = { ...defaultOptions, ...options };
+    
+    try {
+        const response = await fetch(ADMIN_API_URL + endpoint, config);
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || result.message);
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('API Request Error:', error);
+        throw error;
+    }
+}
 
 function normalizeJenjang(value) {
     const raw = (value || '').toString().trim().toLowerCase();
@@ -30,20 +51,11 @@ function formatJenjangLabel(value) {
     return (value || '-').toString();
 }
 
-// Registration data management - Using Supabase
+// Registration data management - Using PHP API
 async function getRegistrations() {
     try {
-        const { data, error } = await supabase
-            .from('Pendaftaran')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        if (error) {
-            console.error('Error fetching registrations:', error);
-            throw error;
-        }
-        
-        return data || [];
+        const result = await apiRequest('/pendaftaran');
+        return result.data || [];
     } catch (error) {
         console.error('Error fetching registrations:', error);
         throw error;
@@ -63,16 +75,9 @@ async function deleteRegistration(id) {
     }
 
     try {
-        const { error } = await supabase
-            .from('Pendaftaran')
-            .delete()
-            .eq('id', id);
-        
-        if (error) {
-            console.error('Error deleting registration:', error);
-            alert('Failed to delete registration');
-            return false;
-        }
+        await apiRequest(`/pendaftaran?id=${id}`, {
+            method: 'DELETE'
+        });
         
         // Reload registrations after delete
         renderRegistrations(document.getElementById('program-filter')?.value || 'all');
@@ -80,6 +85,7 @@ async function deleteRegistration(id) {
         return true;
     } catch (error) {
         console.error('Error deleting registration:', error);
+        alert('Failed to delete registration');
         return false;
     }
 }
@@ -175,36 +181,40 @@ function getRegistrationsByProgram(registrations, program) {
     return registrations.filter(reg => normalizeJenjang(reg.jenjang) === normalizeJenjang(program));
 }
 
-// Login functionality
-function login(username, password) {
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-        isLoggedIn = true;
-        localStorage.setItem('adminLoggedIn', 'true');
-        return true;
+// Auth functionality now uses auth.js + /api/auth endpoint
+async function logout() {
+    try {
+        if (typeof window.logoutAdmin === 'function') {
+            await window.logoutAdmin();
+            return;
+        }
+    } catch (error) {
+        console.error('Logout API error:', error);
     }
-    return false;
+
+    window.location.href = '../login.html';
 }
 
-function logout() {
-    isLoggedIn = false;
-    localStorage.removeItem('adminLoggedIn');
+async function checkLoginStatus() {
+    try {
+        if (typeof window.checkAuth === 'function') {
+            const authResult = await window.checkAuth();
+            if (authResult && authResult.isAuthenticated) {
+                showAdminPanel();
+                return true;
+            }
+        }
+    } catch (error) {
+        console.error('Auth check error:', error);
+    }
+
     showLoginForm();
-}
-
-function checkLoginStatus() {
-    const loggedIn = localStorage.getItem('adminLoggedIn') === 'true';
-    if (loggedIn) {
-        isLoggedIn = true;
-        showAdminPanel();
-    } else {
-        showLoginForm();
-    }
+    return false;
 }
 
 // UI Management
 function showLoginForm() {
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('admin-panel').style.display = 'none';
+    window.location.href = '../login.html';
 }
 
 function showAdminPanel() {
@@ -213,7 +223,7 @@ function showAdminPanel() {
     renderDashboard();
 }
 
-// Dashboard rendering - Using Supabase data
+// Dashboard rendering - Using PHP API data
 async function renderDashboard() {
     try {
         const registrations = await getRegistrations();
@@ -261,12 +271,12 @@ async function renderDashboard() {
 
         const recentList = document.getElementById('recent-registrations');
         if (recentList) {
-            recentList.innerHTML = '<p>Error loading data from Supabase. Check console and RLS policy.</p>';
+            recentList.innerHTML = '<p>Error loading data. Check console.</p>';
         }
     }
 }
 
-// Registration management - Using Supabase data
+// Registration management - Using PHP API data
 async function renderRegistrations(filter = 'all') {
     try {
         const registrations = await getRegistrations();
@@ -318,60 +328,26 @@ async function renderRegistrations(filter = 'all') {
     }
 }
 
-// Event handlers
-function handleLogin(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    if (login(username, password)) {
-        showAdminPanel();
-    } else {
-        alert('Invalid credentials!');
-    }
-}
-
 function handleFilterChange() {
     const filter = document.getElementById('program-filter').value;
     renderRegistrations(filter);
 }
 
+// Note: Realtime subscriptions removed - PHP API doesn't support realtime natively
+// To get real-time updates, you'd need to implement WebSocket or polling
 function setupRegistrationsRealtime() {
-    if (!supabase || registrationsChannel) return;
-
-    registrationsChannel = supabase
-        .channel('admin-registrations-live')
-        .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'Pendaftaran'
-        }, () => {
-            renderDashboard();
-
-            const activeTab = document.querySelector('.tab-button.active')?.getAttribute('data-tab');
-            if (activeTab === 'registrations') {
-                const activeFilter = document.getElementById('program-filter')?.value || 'all';
-                renderRegistrations(activeFilter);
-            }
-        })
-        .subscribe();
+    // Realtime is not supported in this migration
+    // You can implement polling if real-time updates are needed
+    console.log('Note: Realtime updates are disabled. Use manual refresh or implement polling.');
 }
 
 // Initialize admin functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Check if we're on admin.html page (has requireAuth middleware)
-    // If so, skip the localStorage-based login check since admin.html handles its own auth
+    // Check if we're on admin page
     const isAdminPage = document.getElementById('admin-panel') && document.querySelector('[data-tab]');
     
-    if (!isAdminPage) {
-        // Only run localStorage-based login check on non-admin pages
+    if (isAdminPage) {
         checkLoginStatus();
-    }
-
-    // Login form
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
     }
 
     // Logout button
@@ -405,13 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    setupRegistrationsRealtime();
-    window.addEventListener('beforeunload', () => {
-        if (registrationsChannel) {
-            supabase.removeChannel(registrationsChannel);
-            registrationsChannel = null;
-        }
-    });
+    // No realtime setup needed
 });
 
 window.showDeleteConfirmModal = showDeleteConfirmModal;

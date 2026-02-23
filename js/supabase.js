@@ -1,10 +1,39 @@
-// Konfigurasi Supabase menggunakan CDN @supabase/supabase-js
-// Ganti dengan URL dan key Supabase Anda yang sebenarnya
-const supabaseUrl = 'https://pjgtefuogurhpkqwgabo.supabase.co'; // Ganti dengan URL Supabase Anda
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ3RlZnVvZ3VyaHBrcXdnYWJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwMDQ3OTksImV4cCI6MjA4NjU4MDc5OX0.8lywIvOzP5VQPm5ouMlr_8ChKKJ3SvyWBXW-OViQ9os'; // Ganti dengan anon key Supabase Anda
+/**
+ * MWCNU Database API - MySQL Backend
+ * Migrated from Supabase to MySQL
+ * 
+ * This file provides the same functions as before, but uses fetch()
+ * to call the PHP API endpoints instead of Supabase.
+ */
 
-// Inisialisasi koneksi ke Supabase
-var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+// API Base URL - UPDATE THIS to point to your PHP API
+const API_BASE_URL = window.location.origin + '/api';
+
+// Helper function for making API requests
+async function apiRequest(endpoint, options = {}) {
+    const defaultOptions = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
+    
+    const config = { ...defaultOptions, ...options };
+    
+    try {
+        const response = await fetch(API_BASE_URL + endpoint, config);
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.error || result.message);
+        }
+        
+        return result;
+    } catch (error) {
+        console.error('API Request Error:', error);
+        throw error;
+    }
+}
 
 function normalizeJenjangForDb(value) {
     const raw = (value || '').toString().trim().toLowerCase();
@@ -18,11 +47,9 @@ function normalizeJenjangForDb(value) {
 
 // Fungsi untuk mendeteksi jenjang secara otomatis berdasarkan parameter URL
 function deteksiJenjang() {
-    // Mendapatkan parameter jenjang dari URL
     const params = new URLSearchParams(window.location.search);
     const jenjangParam = params.get('jenjang') || 'tk';
 
-    // Mapping jenjang berdasarkan parameter
     const jenjangMapping = {
         'tk': 'TK',
         'sd': 'SD',
@@ -30,7 +57,6 @@ function deteksiJenjang() {
         'smk': 'SMK'
     };
 
-    // Mengembalikan jenjang yang sesuai, default ke 'TK' jika tidak ditemukan
     return jenjangMapping[jenjangParam] || 'TK';
 }
 
@@ -39,20 +65,15 @@ async function simpanPendaftaran(dataPendaftaran) {
     try {
         console.log('Data to insert:', dataPendaftaran);
 
-        // Mengirim data ke tabel 'pendaftaran' di Supabase
-        const { data, error } = await supabase
-            .from('Pendaftaran')
-            .insert([dataPendaftaran]);
+        const result = await apiRequest('/pendaftaran', {
+            method: 'POST',
+            body: JSON.stringify(dataPendaftaran)
+        });
 
-        if (error) {
-            console.error('Error menyimpan pendaftaran:', error);
-            throw error;
-        }
-
-        console.log('Data pendaftaran berhasil disimpan:', data);
-        return data;
+        console.log('Data pendaftaran berhasil disimpan:', result);
+        return result.data;
     } catch (error) {
-        console.error('Terjadi kesalahan saat menyimpan pendaftaran:', error);
+        console.error('Error menyimpan pendaftaran:', error);
         throw error;
     }
 }
@@ -61,7 +82,6 @@ async function simpanPendaftaran(dataPendaftaran) {
 async function simpanDataDariForm() {
     console.log('simpanDataDariForm called');
     try {
-        // Mengambil nilai dari elemen-elemen form menggunakan document.querySelector
         const dataPendaftaran = {
             nama_lengkap: document.querySelector('#nama_lengkap').value,
             tempat_lahir: document.querySelector('#tempat_lahir').value,
@@ -85,30 +105,24 @@ async function simpanDataDariForm() {
 
         console.log('Data collected:', dataPendaftaran);
 
-        // Memanggil fungsi simpanPendaftaran untuk menyimpan data
         await simpanPendaftaran(dataPendaftaran);
 
-        // Mengosongkan form setelah berhasil menyimpan
         document.querySelector('#registrationForm').reset();
 
-        // Menampilkan pesan sukses
         const successMsg = document.querySelector('#successMessage');
         successMsg.textContent = 'Pendaftaran berhasil dikirim! Terima kasih telah mendaftar.';
         successMsg.style.display = 'block';
 
-        // Menyembunyikan pesan sukses setelah 5 detik
         setTimeout(() => {
             successMsg.style.display = 'none';
         }, 5000);
 
     } catch (error) {
         console.error('Error in simpanDataDariForm:', error);
-        // Menampilkan pesan error jika terjadi kesalahan
         const errorMsg = document.querySelector('#errorMessage');
         errorMsg.textContent = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
         errorMsg.style.display = 'block';
 
-        // Menyembunyikan pesan error setelah 5 detik
         setTimeout(() => {
             errorMsg.style.display = 'none';
         }, 5000);
@@ -118,18 +132,9 @@ async function simpanDataDariForm() {
 // Fungsi untuk menampilkan blog dari tabel 'blog'
 async function tampilkanBlog() {
     try {
-        // Mengambil data dari tabel 'blog' di Supabase
-        const { data: posts, error } = await supabase
-            .from('blog')
-            .select('id, blog_title, blog_content, tanggal, gambar_url')
-            .order('tanggal', { ascending: false }); // Mengurutkan berdasarkan tanggal terbaru
+        const result = await apiRequest('/blog');
+        const posts = result.data || [];
 
-        if (error) {
-            console.error('Error mengambil data blog:', error);
-            throw error;
-        }
-
-        // Mengambil container untuk menampilkan blog
         const container = document.querySelector('#blog-posts');
         const latestContainer = document.querySelector('#latest-posts');
         const categoryContainer = document.querySelector('#blog-categories');
@@ -139,7 +144,6 @@ async function tampilkanBlog() {
             return;
         }
 
-        // Mengosongkan container sebelum menampilkan data baru
         container.innerHTML = '';
         if (latestContainer) latestContainer.innerHTML = '';
         if (categoryContainer) categoryContainer.innerHTML = '';
@@ -181,12 +185,10 @@ async function tampilkanBlog() {
             return `${raw.slice(0, maxLength).trimEnd()}...`;
         }
 
-        // Menampilkan setiap postingan blog
         posts.forEach(post => {
             const postElement = document.createElement('article');
             postElement.className = 'blog-post';
 
-            // Format tanggal
             const tanggal = formatTanggalIndonesia(post.tanggal);
             const judul = post.blog_title || 'Tanpa Judul';
             const konten = post.blog_content || '';
@@ -226,7 +228,6 @@ async function tampilkanBlog() {
     } catch (error) {
         console.error('Terjadi kesalahan saat menampilkan blog:', error);
 
-        // Menampilkan pesan error di container
         const container = document.querySelector('#blog-posts');
         const latestContainer = document.querySelector('#latest-posts');
         const categoryContainer = document.querySelector('#blog-categories');
@@ -276,9 +277,9 @@ async function tampilkanDetailBlog() {
         if (!raw) return '<p>Konten belum tersedia.</p>';
         const escaped = raw
             .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
+            .replace(/</g, '<')
+            .replace(/>/g, '>')
+            .replace(/"/g, '"')
             .replace(/'/g, '&#39;');
         return escaped
             .split(/\n{2,}/)
@@ -298,14 +299,10 @@ async function tampilkanDetailBlog() {
 
         setLoading(true);
 
-        const { data: post, error } = await supabase
-            .from('blog')
-            .select('id, blog_title, blog_content, tanggal, gambar_url')
-            .eq('id', id)
-            .single();
+        const result = await apiRequest(`/blog?id=${id}`);
+        const post = result.data;
 
-        if (error || !post) {
-            console.error('Error mengambil detail blog:', error);
+        if (!post) {
             setError('Blog tidak ditemukan atau gagal dimuat.');
             return;
         }
@@ -331,19 +328,12 @@ async function tampilkanDetailBlog() {
 // Fungsi untuk menghapus blog berdasarkan ID
 async function hapusBlog(id) {
     try {
-        // Menghapus data dari tabel 'blog' di Supabase berdasarkan ID
-        const { data, error } = await supabase
-            .from('blog')
-            .delete()
-            .eq('id', id); // Menggunakan kolom 'id' untuk identifikasi
+        const result = await apiRequest(`/blog?id=${id}`, {
+            method: 'DELETE'
+        });
 
-        if (error) {
-            console.error('Error menghapus blog:', error);
-            throw error;
-        }
-
-        console.log('Blog berhasil dihapus:', data);
-        return data;
+        console.log('Blog berhasil dihapus:', result);
+        return result;
     } catch (error) {
         console.error('Terjadi kesalahan saat menghapus blog:', error);
         throw error;
@@ -355,20 +345,15 @@ async function simpanBlog(dataBlog) {
     try {
         console.log('Data blog to insert:', dataBlog);
 
-        // Mengirim data ke tabel 'blog' di Supabase
-        const { data, error } = await supabase
-            .from('blog')
-            .insert([dataBlog]);
+        const result = await apiRequest('/blog', {
+            method: 'POST',
+            body: JSON.stringify(dataBlog)
+        });
 
-        if (error) {
-            console.error('Error menyimpan blog:', error);
-            throw error;
-        }
-
-        console.log('Data blog berhasil disimpan:', data);
-        return data;
+        console.log('Data blog berhasil disimpan:', result);
+        return result.data;
     } catch (error) {
-        console.error('Terjadi kesalahan saat menyimpan blog:', error);
+        console.error('Error menyimpan blog:', error);
         throw error;
     }
 }
@@ -376,38 +361,27 @@ async function simpanBlog(dataBlog) {
 // Fungsi untuk mengambil semua blog posts (untuk admin)
 async function ambilSemuaBlog() {
     try {
-        // Mengambil semua data dari tabel 'blog' di Supabase
-        const { data: posts, error } = await supabase
-            .from('blog')
-            .select('*') // Mengambil semua kolom
-            .order('tanggal', { ascending: false }); // Mengurutkan berdasarkan tanggal terbaru
-
-        if (error) {
-            console.error('Error mengambil semua blog:', error);
-            throw error;
-        }
-
-        return posts || [];
+        const result = await apiRequest('/blog');
+        return result.data || [];
     } catch (error) {
         console.error('Terjadi kesalahan saat mengambil semua blog:', error);
         throw error;
     }
 }
 
-// Fungsi untuk menginisialisasi koneksi Supabase (opsional, untuk testing)
+// Fungsi untuk mengetes koneksi ke database
 async function testKoneksiSupabase() {
     try {
-        const { data, error } = await supabase.from('Pendaftaran').select('count').limit(1);
-        if (error) throw error;
-        console.log('Koneksi Supabase berhasil!');
+        const result = await apiRequest('/blog');
+        console.log('Koneksi MySQL berhasil!');
         return true;
     } catch (error) {
-        console.error('Koneksi Supabase gagal:', error);
+        console.error('Koneksi MySQL gagal:', error);
         return false;
     }
 }
 
-// Mengekspor fungsi-fungsi agar bisa digunakan di file lain (jika menggunakan module)
+// Export functions for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         simpanPendaftaran,
@@ -422,7 +396,7 @@ if (typeof module !== 'undefined' && module.exports) {
     };
 }
 
-// Membuat fungsi global untuk digunakan di HTML
+// Make functions available globally
 window.simpanDataDariForm = simpanDataDariForm;
 window.tampilkanBlog = tampilkanBlog;
 window.testKoneksiSupabase = testKoneksiSupabase;
@@ -431,61 +405,43 @@ window.hapusBlog = hapusBlog;
 window.ambilSemuaBlog = ambilSemuaBlog;
 window.tampilkanDetailBlog = tampilkanDetailBlog;
 
-// Fungsi untuk mengunggah gambar ke Supabase Storage
+// Fungsi untuk mengunggah gambar ke server
 async function uploadImageToSupabase(file) {
     try {
-        // Validasi file
         if (!file) {
             throw new Error('File tidak ditemukan');
         }
 
-        // Validasi tipe file
         if (!file.type.startsWith('image/')) {
             throw new Error('File harus berupa gambar');
         }
 
-        // Validasi ukuran file (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             throw new Error('Ukuran file maksimal 5MB');
         }
 
-        // Membuat nama file unik dengan Date.now()
-        const uniqueFileName = `blog_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-        
-        console.log('Mengunggah gambar:', uniqueFileName);
+        const formData = new FormData();
+        formData.append('file', file);
 
-        // Mengunggah file ke Supabase Storage bucket 'blog_images'
-        const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('blog_images')
-            .upload(uniqueFileName, file, {
-                cacheControl: '3600',
-                upsert: false
-            });
+        console.log('Mengunggah gambar:', file.name);
 
-        if (uploadError) {
-            console.error('Error upload gambar:', uploadError);
-            throw uploadError;
+        const response = await fetch(API_BASE_URL + '/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            throw new Error(result.error || 'Upload failed');
         }
 
-        console.log('Upload berhasil:', uploadData);
-
-        // Mendapatkan public URL dari gambar
-        const { data: urlData, error: urlError } = await supabase.storage
-            .from('blog_images')
-            .getPublicUrl(uniqueFileName);
-
-        if (urlError) {
-            console.error('Error mendapatkan URL:', urlError);
-            throw urlError;
-        }
-
-        const publicUrl = urlData.publicUrl;
-        console.log('Public URL:', publicUrl);
+        console.log('Upload berhasil:', result);
 
         return {
             success: true,
-            publicUrl: publicUrl,
-            filePath: uploadData.path
+            publicUrl: result.data.publicUrl,
+            filePath: result.data.filePath
         };
 
     } catch (error) {
@@ -502,7 +458,6 @@ async function simpanBlogDenganGambar(judul, konten, fileGambar) {
     try {
         let gambarUrl = '';
 
-        // Jika ada file gambar, upload ke Supabase
         if (fileGambar) {
             const uploadResult = await uploadImageToSupabase(fileGambar);
             
@@ -513,7 +468,6 @@ async function simpanBlogDenganGambar(judul, konten, fileGambar) {
             gambarUrl = uploadResult.publicUrl;
         }
 
-        // Menyiapkan data blog
         const dataBlog = {
             blog_title: judul,
             blog_content: konten,
@@ -523,7 +477,6 @@ async function simpanBlogDenganGambar(judul, konten, fileGambar) {
 
         console.log('Data blog akan disimpan:', dataBlog);
 
-        // Menyimpan ke database menggunakan fungsi yang sudah ada
         const result = await simpanBlog(dataBlog);
 
         return {
@@ -541,20 +494,18 @@ async function simpanBlogDenganGambar(judul, konten, fileGambar) {
     }
 }
 
-// Fungsi untuk menghapus gambar dari Supabase Storage
+// Fungsi untuk menghapus gambar dari server
 async function hapusGambarDariSupabase(filePath) {
     try {
-        const { data, error } = await supabase.storage
-            .from('blog_images')
-            .remove([filePath]);
+        // Extract just the filename if full path is provided
+        const filename = filePath.split('/').pop();
+        
+        const result = await apiRequest(`/upload?path=${encodeURIComponent(filename)}`, {
+            method: 'DELETE'
+        });
 
-        if (error) {
-            console.error('Error menghapus gambar:', error);
-            throw error;
-        }
-
-        console.log('Gambar berhasil dihapus:', data);
-        return { success: true, data: data };
+        console.log('Gambar berhasil dihapus:', result);
+        return { success: true, data: result };
 
     } catch (error) {
         console.error('Terjadi kesalahan saat menghapus gambar:', error);
@@ -562,7 +513,7 @@ async function hapusGambarDariSupabase(filePath) {
     }
 }
 
-// Mengekspor fungsi-fungsi baru ke global window
+// Export new functions to global window
 window.uploadImageToSupabase = uploadImageToSupabase;
 window.simpanBlogDenganGambar = simpanBlogDenganGambar;
 window.hapusGambarDariSupabase = hapusGambarDariSupabase;

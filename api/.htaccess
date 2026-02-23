@@ -1,0 +1,33 @@
+# Apache Configuration for Clean URLs
+# This allows URLs like /api/pendaftaran instead of /api/pendaftaran.php
+
+RewriteEngine On
+RewriteBase /api/
+
+# If the request is for a real file or directory, skip rewrite
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rewrite to .php file
+RewriteRule ^([^/]+)/?$ $1.php [L,QSA]
+
+# Add CORS headers
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+</IfModule>
+
+# Disable directory listing
+Options -Indexes
+
+# Protect config files
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "db_connect.php">
+    Order allow,deny
+    Deny from all
+</Files>

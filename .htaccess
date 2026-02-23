@@ -1,0 +1,191 @@
+# =============================================================================
+# SECURITY HARDENING CONFIGURATION
+# Website: MWCNU (Majelis Wakil Cabang Nahdlatul Ulama)
+# Generated: Security Hardening based on Nikto Scan Results
+# Server: Apache/LiteSpeed Compatible
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. FORCE HTTPS REDIRECT (HTTP to HTTPS)
+# Redirect semua traffic HTTP ke HTTPS dengan status 301 (permanent)
+# -----------------------------------------------------------------------------
+RewriteEngine On
+
+# Check if HTTPS is not enabled
+RewriteCond %{HTTPS} off
+# Redirect to HTTPS with 301 status
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# -----------------------------------------------------------------------------
+# 2. SECURITY HEADERS (Anti-Clickjacking, XSS, MIME-sniffing)
+# Menambahkan header keamanan untuk melindungi dari berbagai serangan
+# -----------------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+    # X-Frame-Options: SAMEORIGIN
+    # Mencegah clickjacking attacks dengan membatasi framing halaman
+    # hanya dari domain yang sama (same origin)
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # X-Content-Type-Options: nosniff
+    # Mencegah browser dari MIME-type sniffing yang bisa menyebabkan
+    # eksekusi malicious content dengan tipe yang salah
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # X-XSS-Protection: 1; mode=block
+    # Mengaktifkan XSS filter browser dan block page jika XSS terdeteksi
+    # Catatan: Modern browser lebih mengandalkan CSP, tapi ini tetap berguna
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Referrer-Policy: strict-origin-when-cross-origin
+    # Mengontrol informasi referrer yang dikirim ke external sites
+    # Hanya mengirim origin (domain) saat cross-origin, full URL untuk same-origin
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Content-Security-Policy (CSP)
+    # Mengontrol resource yang boleh di-load oleh browser
+    # default-src 'self' = hanya resource dari domain sendiri yang diperbolehkan
+    # Catatan: Sesuaikan policy ini jika website menggunakan CDN/external resources
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'self';"
+    
+    # Permissions-Policy (formerly Feature-Policy)
+    # Mengontrol akses ke browser features seperti camera, microphone, geolocation
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=()"
+    
+    # Strict-Transport-Security (HSTS)
+    # Memaksa browser selalu menggunakan HTTPS untuk domain ini
+    # max-age=31536000 = 1 tahun, includeSubDomains = berlaku untuk semua subdomain
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# 3. SERVER INFORMATION DISCLOSURE PREVENTION
+# Menyembunyikan informasi server yang bisa digunakan attacker
+# -----------------------------------------------------------------------------
+
+# ServerTokens: Prod (Production)
+# Menampilkan minimal information (hanya "Apache" atau "LiteSpeed")
+# Opsi: Full | OS | Minimal | Minor | Minimal | Prod
+ServerTokens Prod
+
+# ServerSignature: Off
+# Menyembunyikan server version dan details di error pages
+ServerSignature Off
+
+# Unset headers yang membocorkan informasi server/platform
+<IfModule mod_headers.c>
+    # X-Powered-By: Menunjukkan teknologi backend (PHP, ASP, dll)
+    Header always unset X-Powered-By
+    
+    # X-Generator: CMS atau framework yang digunakan
+    Header always unset X-Generator
+    
+    # X-Mod-Pagespeed: Google PageSpeed module info
+    Header always unset X-Mod-Pagespeed
+    
+    # X-Pingback: WordPress pingback URL
+    Header always unset X-Pingback
+    
+    # X-Backend-Server: Load balancer info
+    Header always unset X-Backend-Server
+    
+    # X-Runtime: Application runtime info
+    Header always unset X-Runtime
+    
+    # X-Version: Application version
+    Header always unset X-Version
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# 4. ETAG INODE DISCLOSURE PROTECTION
+# Menonaktifkan ETag untuk mencegah information leakage (inode numbers)
+# -----------------------------------------------------------------------------
+
+# FileETag: None
+# Menonaktifkan ETag generation sepenuhnya
+# ETag bisa membocorkan inode numbers yang sensitive pada sistem file
+FileETag None
+
+# Unset ETag header jika sudah ada
+<IfModule mod_headers.c>
+    Header always unset ETag
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# 5. BASIC SECURITY CONFIGURATIONS
+# Konfigurasi dasar keamanan tambahan
+# -----------------------------------------------------------------------------
+
+# Disable directory listing (menampilkan isi folder)
+# Mencegah attacker melihat struktur file dan folder
+Options -Indexes
+
+# Disable server-side includes (SSI) yang bisa menjadi security risk
+Options -Includes
+
+# Disable symbolic links following (mencegah symlink attacks)
+Options -FollowSymLinks
+
+# Protect against HTTPoxy vulnerability (CGI environment variable)
+<IfModule mod_headers.c>
+    RequestHeader unset Proxy early
+</IfModule>
+
+# Disable access to sensitive files
+<FilesMatch "^\.">
+    # Deny access to hidden files (files starting with dot)
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect common sensitive files
+<FilesMatch "(^#.*#|\.(bak|config|dist|fla|inc|ini|log|psd|sh|sql|sw[op])|~)$">
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
+
+# -----------------------------------------------------------------------------
+# 6. MIME TYPE SECURITY
+# Memastikan MIME types yang benar untuk mencegah MIME-sniffing attacks
+# -----------------------------------------------------------------------------
+
+# Force MIME type for specific extensions
+AddType application/javascript .js
+AddType text/css .css
+AddType application/json .json
+
+# Prevent execution of scripts in upload directories (if applicable)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# 7. CLICKJACKING PROTECTION (Additional)
+# Frame-Options via mod_rewrite sebagai backup
+# -----------------------------------------------------------------------------
+
+<IfModule mod_rewrite.c>
+    # Set environment variable if page is framed
+    RewriteCond %{HTTP_REFERER} !^$
+    RewriteCond %{HTTP_REFERER} !^https?://(www\.)?%{HTTP_HOST}/ [NC]
+    # Note: This is a basic check, X-Frame-Options header is more reliable
+</IfModule>
+
+# -----------------------------------------------------------------------------
+# 8. CROSS-ORIGIN RESOURCE SHARING (CORS) - Restrictive Default
+# Default restrictive CORS policy, bisa di-override di subdirectories
+# -----------------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+    # Default: Same-origin only
+    Header always set Access-Control-Allow-Origin "same-origin"
+    
+    # Remove potentially dangerous CORS headers
+    Header always unset Access-Control-Allow-Credentials
+</IfModule>
+
+# =============================================================================
+# END OF SECURITY HARDENING CONFIGURATION
+# Note: Test website functionality after deployment
+# =============================================================================
