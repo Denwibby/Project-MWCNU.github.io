@@ -152,6 +152,116 @@
             border: 1px solid #c3e6cb;
         }
 
+        /* Confirmation Popup Modal */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-modal.active {
+            display: flex;
+        }
+
+        .confirmation-modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .confirmation-modal-content {
+            position: relative;
+            background: #fff;
+            padding: 40px 30px;
+            border-radius: 12px;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: modalPopIn 0.3s ease-out;
+        }
+
+        @keyframes modalPopIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .confirmation-modal-icon {
+            width: 80px;
+            height: 80px;
+            background: #d4edda;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .confirmation-modal-icon i {
+            font-size: 40px;
+            color: #28a745;
+        }
+
+        .confirmation-modal h3 {
+            color: #28a745;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .confirmation-modal p {
+            color: #666;
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .confirmation-modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .confirmation-modal .btn-confirm {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .confirmation-modal .btn-confirm:hover {
+            background-color: #45a049;
+        }
+
+        .confirmation-modal .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .confirmation-modal .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+
         .error-message {
             display: none;
             background-color: #f8d7da;
@@ -389,6 +499,35 @@
         </form>
     </div>
 
+    <!-- Confirmation Modal Popup (Before Submit) -->
+    <div id="confirmationModal" class="confirmation-modal">
+        <div class="confirmation-modal-overlay"></div>
+        <div class="confirmation-modal-content">
+            <div class="confirmation-modal-icon" style="background: #fff3cd;">
+                <i class="fas fa-circle-question" style="color: #ffc107;"></i>
+            </div>
+            <h3 style="color: #856404;">Konfirmasi Data</h3>
+            <p>Apakah semua data yang Anda inputkan sudah benar?</p>
+            <div class="confirmation-modal-buttons">
+                <button type="button" class="btn-cancel" onclick="cancelSubmit()">Cek Ulang</button>
+                <button type="button" class="btn-confirm" onclick="confirmSubmit()">Sudah Benar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal Popup (After Submit) -->
+    <div id="successModal" class="confirmation-modal">
+        <div class="confirmation-modal-overlay"></div>
+        <div class="confirmation-modal-content">
+            <div class="confirmation-modal-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Pendaftaran Berhasil!</h3>
+            <p>Terima kasih telah mendaftar. Data Anda telah kami terima dan akan segera kami proses. Tim sekolah akan menghubungi Anda dalam waktu dekat.</p>
+            <button type="button" class="btn-confirm" onclick="closeSuccessModal()">OK</button>
+        </div>
+    </div>
+
     <footer class="site-footer-modern">
         <div class="site-footer-inner">
             <div>
@@ -564,54 +703,118 @@
             document.getElementById('registrationForm').dataset.jenjang = jenjang;
         }
 
-        // Handle form submission
-        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+        // Handle form submission - show confirmation modal first
+        let formToSubmit = null;
+
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            console.log('Form submitted');
+            console.log('Form submitted - showing confirmation modal');
+            
+            // Show confirmation modal before submitting
+            showConfirmationModal();
+            
+            // Store reference to form for later submission
+            formToSubmit = this;
+        });
 
-            const jenjang = this.dataset.jenjang;
-            const school = schoolData[jenjang];
+        // Function to handle "Sudah Benar" button - proceed with submission
+        async function confirmSubmit() {
+            if (!formToSubmit) return;
 
-            // Menampilkan pesan loading
+            const form = formToSubmit;
+
+            // Hide confirmation modal
+            closeConfirmationModal();
+
+            // Show loading message
             const successMsg = document.getElementById('successMessage');
             const errorMsg = document.getElementById('errorMessage');
             successMsg.style.display = 'none';
             errorMsg.style.display = 'none';
 
-            // Mengumpulkan data form dan menyimpannya ke Supabase
             try {
                 console.log('Calling simpanDataDariForm');
                 await simpanDataDariForm();
                 console.log('simpanDataDariForm completed');
 
-                // Menampilkan pesan sukses
-                successMsg.innerHTML = `<i class="fas fa-circle-check" style="color: #155724; margin-right: 8px;"></i> Pendaftaran berhasil dikirim! Terima kasih telah mendaftar. Data Anda telah kami terima dan akan segera kami proses.`;
-                successMsg.style.display = 'block';
+                // Show success modal
+                showSuccessModal();
 
                 // Reset form
-                this.reset();
-                window.scrollTo(0, 0);
-
-                // Menyembunyikan pesan sukses setelah 5 detik
-                setTimeout(() => {
-                    successMsg.style.display = 'none';
-                }, 5000);
+                form.reset();
+                formToSubmit = null;
 
             } catch (error) {
                 console.error('Error in form submission:', error);
-                // Menampilkan pesan error jika terjadi kesalahan
+                // Show error message
                 errorMsg.textContent = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
                 errorMsg.style.display = 'block';
 
-                // Menyembunyikan pesan error setelah 5 detik
+                // Hide error after 5 seconds
                 setTimeout(() => {
                     errorMsg.style.display = 'none';
                 }, 5000);
             }
-        });
+        }
+
+        // Function to handle "Cek Ulang" button - cancel submission
+        function cancelSubmit() {
+            // Close confirmation modal
+            closeConfirmationModal();
+            // Clear form reference
+            formToSubmit = null;
+            // Show message to user
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.innerHTML = '<i class="fas fa-info-circle"></i> Silakan cek kembali data Anda sebelumSubmit.';
+            errorMsg.style.display = 'block';
+            errorMsg.style.backgroundColor = '#fff3cd';
+            errorMsg.style.color = '#856404';
+            errorMsg.style.borderColor = '#ffeaa7';
+
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                errorMsg.style.display = 'none';
+            }, 5000);
+        }
+
+        // Success modal functions
+        function showSuccessModal() {
+            document.getElementById('successModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
 
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', initializeForm);
+
+        // Confirmation Modal Functions
+        function showConfirmationModal() {
+            document.getElementById('confirmationModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal when clicking overlay
+        document.getElementById('confirmationModal').addEventListener('click', function(e) {
+            if (e.target === this || e.target.classList.contains('confirmation-modal-overlay')) {
+                closeConfirmationModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeConfirmationModal();
+            }
+        });
     </script>
     <a href="https://wa.me/+6283853577035" class="floating-whatsapp" target="_blank" aria-label="Chat WhatsApp"><i class="fab fa-whatsapp"></i></a>
 

@@ -1,18 +1,8 @@
-# Task: Add Modern Footer to pendaftaran.html
+# TODO - Pendaftaran & QR Modal Fix
 
-## Steps:
-- [x] Read and analyze index.html footer structure
-- [x] Read and analyze pendaftaran.html current footer
-- [x] Create comprehensive plan
-- [x] Get user confirmation
-- [x] Replace simple footer with modern footer in pendaftaran.html
-- [x] Adjust asset paths for pages/ subdirectory
-- [x] Verify changes
-
-
-## Changes to be made:
-- Replace the simple `<footer>` element in pendaftaran.html with the modern `site-footer-modern` structure from index.html
-- Adjust paths:
-  - `assets/images/nu-logo.png` → `../assets/images/nu-logo.png`
-  - `index.html` → `../index.html`
-  - `pages/xxx.html` → `xxx.html`
+## Tasks:
+- [x] 1. Add confirmation popup modal in pages/pendaftaran.html
+- [x] 2. Fix QR modal position in pages/tk.html
+- [x] 3. Fix QR modal position in pages/sd-maarif.html
+- [x] 4. Fix QR modal position in pages/mts.html
+- [x] 5. Fix QR modal position in pages/smk.html
