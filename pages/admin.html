@@ -802,35 +802,35 @@
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-icon-wrapper">
-                                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                             </div>
                             <div class="stat-number" id="total-registrations">0</div>
                             <div class="stat-label">Total Registrations</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon-wrapper">
-                                <div class="stat-icon"><i class="fas fa-child"></i></div>
+                                <div class="stat-icon"><i class="fa-solid fa-seedling"></i></div>
                             </div>
                             <div class="stat-number" id="tk-registrations">0</div>
                             <div class="stat-label">TK Registrations</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon-wrapper">
-                                <div class="stat-icon"><i class="fas fa-school"></i></div>
+                                <div class="stat-icon"><i class="fa-solid fa-book"></i></div>
                             </div>
                             <div class="stat-number" id="sd-registrations">0</div>
                             <div class="stat-label">SD Registrations</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon-wrapper">
-                                <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+                                <div class="stat-icon"><i class="fa-solid fa-graduation-cap"></i></div>
                             </div>
                             <div class="stat-number" id="mts-registrations">0</div>
                             <div class="stat-label">MTs Registrations</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-icon-wrapper">
-                                <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                                <div class="stat-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
                             </div>
                             <div class="stat-number" id="smk-registrations">0</div>
                             <div class="stat-label">SMK Registrations</div>
@@ -860,9 +860,18 @@
                 <section>
                     <div class="section-header">
                         <h2><i class="fas fa-clock fa-icon-green"></i> Recent Registrations</h2>
-                        <button class="view-all-btn" onclick="switchTab('registrations')">
-                            View All <i class="fas fa-arrow-right"></i>
-                        </button>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <select id="recent-jenjang-filter" style="padding: 10px 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.9em; background: white;">
+                                <option value="all">All Jenjang</option>
+                                <option value="tk">TK</option>
+                                <option value="sd">SD</option>
+                                <option value="mts">MTs</option>
+                                <option value="smk">SMK</option>
+                            </select>
+                            <button class="view-all-btn" onclick="switchTab('registrations')">
+                                View All <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="recent-registrations">
                         <div id="recent-registrations">
@@ -878,9 +887,9 @@
                         <h2><i class="fas fa-users fa-icon-green"></i> Registration Management</h2>
                     </div>
                     <div class="filter-container">
-                        <label for="program-filter">Filter by Program:</label>
+                        <label for="program-filter">Filter by Jenjang:</label>
                         <select id="program-filter">
-                            <option value="all">All Programs</option>
+                            <option value="all">All Jenjang</option>
                             <option value="tk">TK</option>
                             <option value="sd">SD</option>
                             <option value="mts">MTs</option>
@@ -1207,6 +1216,10 @@
             const activeButton = document.querySelector(`[data-tab="${tabId}"]`);
             if (activeButton) {
                 activeButton.classList.add('active');
+            }
+
+            if (tabId === 'registrations' && typeof renderRegistrations === 'function') {
+                renderRegistrations(document.getElementById('program-filter')?.value || 'all');
             }
 
             if (tabId === 'dashboard' && document.getElementById('registrationChart')) {

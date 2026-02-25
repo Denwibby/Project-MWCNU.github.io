@@ -51,6 +51,43 @@ function formatJenjangLabel(value) {
     return (value || '-').toString();
 }
 
+function getRegistrationJenjangValue(reg) {
+    if (!reg || typeof reg !== 'object') return '';
+    return (
+        reg.jenjang ||
+        reg.program ||
+        reg.jenjang_pendidikan ||
+        reg.school_level ||
+        ''
+    );
+}
+
+function getRegistrationNormalizedJenjang(reg) {
+    return normalizeJenjang(getRegistrationJenjangValue(reg));
+}
+
+function getRegistrationDateValue(reg) {
+    if (!reg || typeof reg !== 'object') return null;
+    return reg.create_at || reg.created_at || null;
+}
+
+function formatRegistrationDate(reg, withTime = false) {
+    const dateValue = getRegistrationDateValue(reg);
+    if (!dateValue) return '-';
+
+    const parsed = new Date(dateValue);
+    if (Number.isNaN(parsed.getTime())) return '-';
+
+    if (withTime) {
+        return parsed.toLocaleString('id-ID', {
+            dateStyle: 'medium',
+            timeStyle: 'short'
+        });
+    }
+
+    return parsed.toLocaleDateString('id-ID', { dateStyle: 'medium' });
+}
+
 // Registration data management - Using PHP API
 async function getRegistrations() {
     try {
@@ -178,7 +215,7 @@ function showInfoModal(options = {}) {
 }
 
 function getRegistrationsByProgram(registrations, program) {
-    return registrations.filter(reg => normalizeJenjang(reg.jenjang) === normalizeJenjang(program));
+    return registrations.filter(reg => getRegistrationNormalizedJenjang(reg) === normalizeJenjang(program));
 }
 
 // Auth functionality now uses auth.js + /api/auth endpoint
@@ -221,19 +258,21 @@ function showAdminPanel() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
     renderDashboard();
+    renderRegistrations(document.getElementById('program-filter')?.value || 'all');
 }
 
 // Dashboard rendering - Using PHP API data
 async function renderDashboard() {
     try {
         const registrations = await getRegistrations();
+        const recentFilter = document.getElementById('recent-jenjang-filter')?.value || 'all';
         
         const stats = {
             total: registrations.length,
-            tk: registrations.filter(reg => normalizeJenjang(reg.jenjang) === 'tk').length,
-            sd: registrations.filter(reg => normalizeJenjang(reg.jenjang) === 'sd').length,
-            mts: registrations.filter(reg => normalizeJenjang(reg.jenjang) === 'mts').length,
-            smk: registrations.filter(reg => normalizeJenjang(reg.jenjang) === 'smk').length
+            tk: registrations.filter(reg => getRegistrationNormalizedJenjang(reg) === 'tk').length,
+            sd: registrations.filter(reg => getRegistrationNormalizedJenjang(reg) === 'sd').length,
+            mts: registrations.filter(reg => getRegistrationNormalizedJenjang(reg) === 'mts').length,
+            smk: registrations.filter(reg => getRegistrationNormalizedJenjang(reg) === 'smk').length
         };
 
         // Update stats cards
@@ -244,19 +283,24 @@ async function renderDashboard() {
         document.getElementById('smk-registrations').textContent = stats.smk;
 
         // Recent registrations
-        const recentRegistrations = registrations.slice(0, 5);
+        const recentSource = recentFilter === 'all'
+            ? registrations
+            : registrations.filter(reg => getRegistrationNormalizedJenjang(reg) === recentFilter);
+        const recentRegistrations = recentSource.slice(0, 5);
         const recentList = document.getElementById('recent-registrations');
         recentList.innerHTML = '';
 
         if (recentRegistrations.length === 0) {
-            recentList.innerHTML = '<p>No registrations yet.</p>';
+            recentList.innerHTML = '<p>No registrations found for selected jenjang.</p>';
         } else {
             recentRegistrations.forEach(reg => {
                 const item = document.createElement('div');
                 item.className = 'recent-item';
                 item.innerHTML = `
-                    <strong>${reg.nama_lengkap}</strong> - ${formatJenjangLabel(reg.jenjang)}
-                    <br><small>${new Date(reg.created_at).toLocaleDateString()}</small>
+                    <strong>${reg.nama_lengkap || '-'}</strong>
+                    <br><small>Jenjang: ${formatJenjangLabel(getRegistrationJenjangValue(reg))}</small>
+                    <br><small>Orang Tua: ${reg.nama_ayah || '-'} / ${reg.nama_ibu || '-'}</small>
+                    <br><small>Tanggal Daftar: ${formatRegistrationDate(reg)}</small>
                 `;
                 recentList.appendChild(item);
             });
@@ -281,9 +325,9 @@ async function renderRegistrations(filter = 'all') {
     try {
         const registrations = await getRegistrations();
         const normalizedFilter = (filter || 'all').toLowerCase();
-        const filteredRegistrations = filter === 'all' 
+        const filteredRegistrations = normalizedFilter === 'all'
             ? registrations 
-            : registrations.filter(reg => normalizeJenjang(reg.jenjang) === normalizedFilter);
+            : registrations.filter(reg => getRegistrationNormalizedJenjang(reg) === normalizedFilter);
         
         const container = document.getElementById('registrations-list');
         container.innerHTML = '';
@@ -309,14 +353,14 @@ async function renderRegistrations(filter = 'all') {
                     </div>
                 </div>
                 <div class="registration-details">
-                    <p><strong>Program:</strong> ${formatJenjangLabel(reg.jenjang)}</p>
+                    <p><strong>Jenjang:</strong> ${formatJenjangLabel(getRegistrationJenjangValue(reg))}</p>
                     <p><strong>Tempat Lahir:</strong> ${reg.tempat_lahir || '-'}</p>
                     <p><strong>Tanggal Lahir:</strong> ${reg.tanggal_lahir || '-'}</p>
                     <p><strong>Nama Ayah:</strong> ${reg.nama_ayah || '-'}</p>
                     <p><strong>Nama Ibu:</strong> ${reg.nama_ibu || '-'}</p>
                     <p><strong>No. Telepon Ortu:</strong> ${reg.no_telp_ortu || '-'}</p>
                     <p><strong>Email Ortu:</strong> ${reg.email_ortu || '-'}</p>
-                    <p><strong>Submitted:</strong> ${new Date(reg.created_at).toLocaleString()}</p>
+                    <p><strong>Submitted:</strong> ${formatRegistrationDate(reg, true)}</p>
                 </div>
             `;
             container.appendChild(item);
@@ -362,6 +406,13 @@ document.addEventListener('DOMContentLoaded', function() {
         filterSelect.addEventListener('change', handleFilterChange);
     }
 
+    const recentJenjangFilter = document.getElementById('recent-jenjang-filter');
+    if (recentJenjangFilter) {
+        recentJenjangFilter.addEventListener('change', () => {
+            renderDashboard();
+        });
+    }
+
     // Tab switching
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -376,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(tabId).classList.add('active');
 
             if (tabId === 'registrations') {
-                renderRegistrations();
+                renderRegistrations(document.getElementById('program-filter')?.value || 'all');
             }
         });
     });
