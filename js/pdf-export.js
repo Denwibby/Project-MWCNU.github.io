@@ -1,50 +1,19 @@
 // PDF Export functionality using jsPDF
 // Exports registration data to PDF format
-// Migrated from Supabase to PHP API
 
-// Helper function for API requests
 async function apiRequest(endpoint, options = {}) {
     const defaultOptions = {
         method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' }
     };
-    
     const config = { ...defaultOptions, ...options };
     const API_BASE_URL = window.location.origin + '/api';
     
-    console.log('API Request:', API_BASE_URL + endpoint);
-    
     try {
         const response = await fetch(API_BASE_URL + endpoint, config);
-        
-        console.log('Response status:', response.status);
-        
-        // Check if response is OK
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('HTTP Error:', response.status, errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-        
+        if (!response.ok) throw new Error('HTTP error: ' + response.status);
         const result = await response.json();
-        console.log('API Response:', result);
-        
-        // Check if result has success property and handle errors
-        if (result === null || result === undefined) {
-            throw new Error('Empty response from server');
-        }
-        
-        if (result.success === false) {
-            throw new Error(result.error || result.message || 'Unknown API error');
-        }
-        
-        // If no success property but has data, return it (backward compatibility)
-        if (result.success === undefined && result.data !== undefined) {
-            return result;
-        }
-        
+        if (result.success === false) throw new Error(result.error || result.message);
         return result;
     } catch (error) {
         console.error('API Request Error:', error);
@@ -52,91 +21,116 @@ async function apiRequest(endpoint, options = {}) {
     }
 }
 
-// Get jsPDF - handle both UMD and global namespace
 function getJsPDF() {
-    // Try different ways to access jsPDF
-    if (window.jspdf && window.jspdf.jsPDF) {
-        return window.jspdf.jsPDF;
-    } else if (window.jspdf) {
-        return window.jspdf;
-    } else if (window.jsPDF) {
-        return window.jsPDF;
-    } else {
-        throw new Error('jsPDF library not loaded. Please refresh the page.');
-    }
+    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+    if (window.jspdf) return window.jspdf;
+    if (window.jsPDF) return window.jsPDF;
+    throw new Error('jsPDF library not loaded');
 }
 
-// Function to export a single registration to PDF
+function formatDateIndo(dateStr) {
+    if (!dateStr) return '-';
+    try {
+        return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch (e) { return dateStr; }
+}
+
+function getJenjangLabel(jenjang) {
+    if (!jenjang) return '-';
+    const j = jenjang.toString().toLowerCase();
+    if (j.includes('tk')) return 'TK';
+    if (j.includes('sd')) return 'SD';
+    if (j.includes('mts')) return 'MTs';
+    if (j.includes('smk')) return 'SMK';
+    return jenjang;
+}
+
 async function exportToPDF(registrationId) {
     try {
-        // Get registration data from PHP API
         const result = await apiRequest('/pendaftaran?id=' + registrationId);
-        const registration = result.data;
+        const reg = result.data;
+        if (!reg) { alert('Registration not found'); return; }
 
-        if (!registration) {
-            alert('Registration not found');
-            return;
-        }
-
-        // Create PDF
         const jsPDF = getJsPDF();
         const doc = new jsPDF();
-
-        // Add header
-        doc.setFontSize(18);
-        doc.setTextColor(76, 175, 80); // Green color
-        doc.text('MWCNU Tanggulangin', 105, 20, { align: 'center' });
+        const green = [76, 175, 80];
         
-        doc.setFontSize(14);
+        // Header
+        doc.setFillColor(...green);
+        doc.rect(0, 0, 210, 25, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.text('MWCNU Tanggulangin', 105, 10, { align: 'center' });
+        doc.setFontSize(11);
+        doc.text('Bukti Pendaftaran Siswa', 105, 18, { align: 'center' });
+
+        // Badge
+        doc.setFillColor(...green);
+        doc.roundedRect(15, 30, 18, 7, 1, 1, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.text(getJenjangLabel(reg.jenjang), 24, 34.5, { align: 'center' });
+
+        // Content
+        let y = 48;
         doc.setTextColor(0, 0, 0);
-        doc.text('Bukti Pendaftaran', 105, 30, { align: 'center' });
-
-        doc.setLineWidth(0.5);
-        doc.line(20, 35, 190, 35);
-
-        // Add registration details
-        doc.setFontSize(12);
-        let y = 45;
-
-        const fields = [
-            ['Nama Lengkap', registration.nama_lengkap],
-            ['Tempat Lahir', registration.tempat_lahir],
-            ['Tanggal Lahir', registration.tanggal_lahir],
-            ['Jenis Kelamin', registration.jenis_kelamin],
-            ['Agama', registration.agama],
-            ['Alamat', registration.alamat_lengkap],
-            ['No. Identitas', registration.no_identitas],
-            ['No. Telepon', registration.no_telp_siswa],
-            ['Jenjang', registration.jenjang],
-            ['Nama Ayah', registration.nama_ayah],
-            ['Nama Ibu', registration.nama_ibu],
-            ['Pekerjaan Ayah', registration.pekerjaan_ayah],
-            ['Pekerjaan Ibu', registration.pekerjaan_ibu],
-            ['No. Telepon Ortu', registration.no_telp_ortu],
-            ['Email Ortu', registration.email_ortu]
+        doc.setFontSize(10);
+        
+        const leftFields = [
+            ['Nama', reg.nama_lengkap],
+            ['TTL', (reg.tempat_lahir || '-') + ', ' + formatDateIndo(reg.tanggal_lahir)],
+            ['JK', reg.jenis_kelamin],
+            ['Agama', reg.agama],
+            ['Alamat', reg.alamat_lengkap],
+            ['No. Identitas', reg.no_identitas],
+            ['No. HP', reg.no_telp_siswa]
         ];
-
-        fields.forEach(function(field) {
-            const label = field[0];
-            const value = field[1];
-            doc.setFont(undefined, 'bold');
-            doc.text(label + ':', 20, y);
-            doc.setFont(undefined, 'normal');
-            doc.text(String(value || '-'), 80, y);
-            y += 8;
+        
+        const rightFields = [
+            ['Nama Ayah', reg.nama_ayah],
+            ['Pekerjaan Ayah', reg.pekerjaan_ayah],
+            ['Nama Ibu', reg.nama_ibu],
+            ['Pekerjaan Ibu', reg.pekerjaan_ibu],
+            ['No. HP Ortu', reg.no_telp_ortu],
+            ['Email', reg.email_ortu]
+        ];
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text('DATA SISWA', 15, y);
+        doc.line(15, y + 1, 95, y + 1);
+        doc.setFont('helvetica', 'normal');
+        y += 7;
+        
+        leftFields.forEach(function(f) {
+            doc.setFont('helvetica', 'bold');
+            doc.text(f[0] + ':', 15, y);
+            doc.setFont('helvetica', 'normal');
+            doc.text(String(f[1] || '-'), 45, y);
+            y += 6;
+        });
+        
+        y = 48;
+        doc.setFont('helvetica', 'bold');
+        doc.text('DATA ORANG TUA', 110, y);
+        doc.line(110, y + 1, 195, y + 1);
+        doc.setFont('helvetica', 'normal');
+        y += 7;
+        
+        rightFields.forEach(function(f) {
+            doc.setFont('helvetica', 'bold');
+            doc.text(f[0] + ':', 110, y);
+            doc.setFont('helvetica', 'normal');
+            doc.text(String(f[1] || '-'), 140, y);
+            y += 6;
         });
 
-        // Add footer
-        doc.setFontSize(10);
+        // Footer
         doc.setTextColor(128, 128, 128);
-        const date = new Date().toLocaleDateString('id-ID');
-        doc.text('Dicetak pada: ' + date, 105, 280, { align: 'center' });
+        doc.setFontSize(9);
+        doc.text('Dicetak: ' + new Date().toLocaleString('id-ID'), 105, 285, { align: 'center' });
 
-        // Save PDF
-        var filename = registration.nama_lengkap ? 
-            'pendaftaran_' + registration.nama_lengkap.replace(/\s+/g, '_') + '.pdf' : 
-            'pendaftaran_' + registrationId + '.pdf';
-        doc.save(filename);
+        const fname = reg.nama_lengkap ? 'pendaftaran_' + reg.nama_lengkap.replace(/\s+/g, '_') + '.pdf' : 'pendaftaran_' + registrationId + '.pdf';
+        doc.save(fname);
 
     } catch (error) {
         console.error('Error exporting PDF:', error);
@@ -144,144 +138,161 @@ async function exportToPDF(registrationId) {
     }
 }
 
-// Function to export all registrations to PDF
-async function exportAllRegistrations() {
+async function exportAllRegistrations(jenjangFilter) {
     try {
-        // Show loading indicator
-        var exportBtn = document.querySelector('.export-all-btn');
-        if (exportBtn) {
-            exportBtn.disabled = true;
-            exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+        const btn = document.querySelector('.export-all-btn');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...'; }
+
+        // Get filter from dropdown if not provided
+        if (!jenjangFilter) {
+            const filterSelect = document.getElementById('program-filter');
+            if (filterSelect) {
+                jenjangFilter = filterSelect.value;
+            }
         }
 
-        // Get all registrations from PHP API
-        var result = await apiRequest('/pendaftaran');
-        var registrations = result.data || [];
-
-        console.log('Registrations fetched:', registrations.length);
-
-        if (registrations.length === 0) {
-            alert('No registrations found to export');
-            return;
+        // Build API endpoint with filter
+        let endpoint = '/pendaftaran';
+        if (jenjangFilter && jenjangFilter !== 'all') {
+            endpoint += '?jenjang=' + encodeURIComponent(jenjangFilter);
         }
 
-        // Create PDF with all registrations
-        var jsPDF = getJsPDF();
-        var doc = new jsPDF();
+        const result = await apiRequest(endpoint);
+        const regs = result.data || [];
+        if (regs.length === 0) { alert('No registrations found'); return; }
 
-        // Add header
-        doc.setFontSize(18);
-        doc.setTextColor(76, 175, 80);
-        doc.text('MWCNU Tanggulangin', 105, 15, { align: 'center' });
+        const jsPDF = getJsPDF();
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
         
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text('Data Pendaftaran Siswa', 105, 25, { align: 'center' });
+        const green = [76, 175, 80];
+        const dark = [33, 33, 33];
+        const gray = [128, 128, 128];
 
+        // Header
+        doc.setFillColor(...green);
+        doc.rect(0, 0, 297, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.text('MWCNU Tanggulangin', 148, 8, { align: 'center' });
         doc.setFontSize(10);
-        doc.setTextColor(128, 128, 128);
-        var exportDate = new Date().toLocaleDateString('id-ID');
-        doc.text('Tanggal Export: ' + exportDate, 105, 32, { align: 'center' });
+        doc.text('Laporan Data Pendaftaran Siswa', 148, 14, { align: 'center' });
 
-        doc.setLineWidth(0.5);
-        doc.line(15, 38, 195, 38);
-
-        // Add summary
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text('Total Pendaftaran: ' + registrations.length, 15, 48);
+        // Summary
+        doc.setTextColor(...dark);
+        doc.setFontSize(10);
+        doc.text('Total: ' + regs.length + ' siswa', 15, 28);
+        doc.text('Export: ' + new Date().toLocaleDateString('id-ID'), 282, 28, { align: 'right' });
 
         // Group by jenjang
-        var groupByJenjang = registrations.reduce(function(acc, reg) {
-            var jenjang = reg.jenjang || 'Unknown';
-            if (!acc[jenjang]) {
-                acc[jenjang] = [];
-            }
-            acc[jenjang].push(reg);
+        const groups = regs.reduce(function(acc, r) {
+            const j = getJenjangLabel(r.jenjang);
+            if (!acc[j]) acc[j] = [];
+            acc[j].push(r);
             return acc;
         }, {});
 
-        var y = 58;
-        var pageHeight = 280;
-        var margin = 15;
-
-        // Iterate through each jenjang group
-        Object.keys(groupByJenjang).forEach(function(jenjang) {
-            // Check if we need a new page
-            if (y > pageHeight - 30) {
-                doc.addPage();
-                y = 20;
-            }
-
-            // Group header
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'bold');
-            doc.text(jenjang + ' (' + groupByJenjang[jenjang].length + ' siswa)', margin, y);
-            y += 8;
-
-            // Table header
-            doc.setFontSize(9);
-            doc.setFont(undefined, 'bold');
-            doc.text('No.', margin, y);
-            doc.text('Nama', margin + 15, y);
-            doc.text('TTL', margin + 65, y);
-            doc.text('Orang Tua', margin + 110, y);
-            doc.text('Telepon', margin + 160, y);
-            y += 6;
-
-            doc.line(margin, y - 2, 195, y - 2);
-
-            // Table rows
-            doc.setFont(undefined, 'normal');
-            groupByJenjang[jenjang].forEach(function(reg, index) {
-                if (y > pageHeight - 20) {
-                    doc.addPage();
-                    y = 20;
-                }
-
-                var nama = (reg.nama_lengkap || '-').substring(0, 20);
-                var ttl = (reg.tempat_lahir || '-') + ', ' + (reg.tanggal_lahir || '-').substring(0, 5);
-                var ortu = (reg.nama_ayah || '-').substring(0, 20);
-                var telp = reg.no_telp_ortu || reg.no_telp_siswa || '-';
-
-                doc.text(String(index + 1) + '.', margin, y);
-                doc.text(nama, margin + 15, y);
-                doc.text(ttl, margin + 65, y);
-                doc.text(ortu, margin + 110, y);
-                doc.text(telp.substring(0, 15), margin + 160, y);
-                y += 6;
-            });
-
-            y += 5;
+        const order = ['TK', 'SD', 'MTs', 'SMK'];
+        const sortedKeys = Object.keys(groups).sort(function(a, b) {
+            const ia = order.indexOf(a), ib = order.indexOf(b);
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
         });
 
-        // Add footer on last page
-        doc.setFontSize(10);
-        doc.setTextColor(128, 128, 128);
-        doc.text('Dicetak dari Sistem Pendaftaran MWCNU', 105, 285, { align: 'center' });
+        let y = 35;
+        const pageH = 210, margin = 12;
+        
+        // Column widths
+        const cNo = 10, cNama = 48, cTTL = 42, cJK = 10, cAlamat = 55, cOrtu = 40, cTelp = 22;
+        const totalW = cNo + cNama + cTTL + cJK + cAlamat + cOrtu + cTelp;
 
-        // Save PDF
+        sortedKeys.forEach(function(jenjang) {
+            if (y > pageH - 35) { doc.addPage(); y = 15; }
+
+            // Group header
+            doc.setFillColor(230, 250, 230);
+            doc.rect(margin, y - 4, totalW, 8, 'F');
+            doc.setTextColor(...green);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text(jenjang + ' (' + groups[jenjang].length + ' siswa)', margin + 4, y + 2);
+            y += 10;
+
+            // Table header
+            doc.setFillColor(...green);
+            doc.rect(margin, y, totalW, 7, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            const hy = y + 5;
+            doc.text('No', margin + cNo/2, hy, { align: 'center' });
+            doc.text('Nama', margin + cNo + cNama/2, hy, { align: 'center' });
+            doc.text('TTL', margin + cNo + cNama + cTTL/2, hy, { align: 'center' });
+            doc.text('JK', margin + cNo + cNama + cTTL + cJK/2, hy, { align: 'center' });
+            doc.text('Alamat', margin + cNo + cNama + cTTL + cJK + cAlamat/2, hy, { align: 'center' });
+            doc.text('Ortu', margin + cNo + cNama + cTTL + cJK + cAlamat + cOrtu/2, hy, { align: 'center' });
+            doc.text('HP', margin + cNo + cNama + cTTL + cJK + cAlamat + cOrtu + cTelp/2, hy, { align: 'center' });
+            y += 7;
+
+            // Rows
+            doc.setTextColor(...dark);
+            doc.setFont('helvetica', 'normal');
+            
+            groups[jenjang].forEach(function(r, i) {
+                if (y > pageH - 12) {
+                    doc.addPage(); y = 15;
+                    doc.setFillColor(...green);
+                    doc.rect(margin, y, totalW, 7, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    const hy2 = y + 5;
+                    doc.text('No', margin + cNo/2, hy2, { align: 'center' });
+                    doc.text('Nama', margin + cNo + cNama/2, hy2, { align: 'center' });
+                    doc.text('TTL', margin + cNo + cNama + cTTL/2, hy2, { align: 'center' });
+                    doc.text('JK', margin + cNo + cNama + cTTL + cJK/2, hy2, { align: 'center' });
+                    doc.text('Alamat', margin + cNo + cNama + cTTL + cJK + cAlamat/2, hy2, { align: 'center' });
+                    doc.text('Ortu', margin + cNo + cNama + cTTL + cJK + cAlamat + cOrtu/2, hy2, { align: 'center' });
+                    doc.text('HP', margin + cNo + cNama + cTTL + cJK + cAlamat + cOrtu + cTelp/2, hy2, { align: 'center' });
+                    y += 7;
+                    doc.setTextColor(...dark);
+                }
+
+                if (i % 2 === 0) { doc.setFillColor(250, 250, 250); doc.rect(margin, y - 3, totalW, 6, 'F'); }
+                
+                doc.setFontSize(7);
+                doc.text(String(i + 1), margin + cNo/2, y, { align: 'center' });
+                doc.text((r.nama_lengkap || '-').substring(0, 22), margin + cNo + 2, y);
+                doc.text(((r.tempat_lahir || '-')).substring(0, 15) + ',' + (r.tanggal_lahir || '-').substring(0, 5), margin + cNo + cNama + 2, y);
+                doc.text(r.jenis_kelamin === 'L' ? 'L' : (r.jenis_kelamin === 'P' ? 'P' : '-'), margin + cNo + cNama + cTTL + cJK/2, y, { align: 'center' });
+                doc.text((r.alamat_lengkap || '-').substring(0, 28), margin + cNo + cNama + cTTL + cJK + 2, y);
+                doc.text((r.nama_ayah || r.nama_ibu || '-').substring(0, 18), margin + cNo + cNama + cTTL + cJK + cAlamat + 2, y);
+                doc.text((r.no_telp_ortu || r.no_telp_siswa || '-').substring(0, 12), margin + cNo + cNama + cTTL + cJK + cAlamat + cOrtu + 2, y);
+                
+                y += 6;
+            });
+            y += 6;
+        });
+
+        // Footer
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            doc.setFillColor(240, 240, 240);
+            doc.rect(0, pageH - 12, 297, 12, 'F');
+            doc.setTextColor(...gray);
+            doc.setFontSize(8);
+            doc.text('MWCNU Tanggulangin - Sistem Pendaftaran', 148, pageH - 6, { align: 'center' });
+            doc.text('Hal ' + i + '/' + totalPages, 282, pageH - 6, { align: 'right' });
+        }
+
         doc.save('semua_pendaftaran_' + new Date().toISOString().split('T')[0] + '.pdf');
 
-        // Reset button
-        if (exportBtn) {
-            exportBtn.disabled = false;
-            exportBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Export All as PDF';
-        }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> Export All as PDF'; }
 
     } catch (error) {
-        console.error('Error exporting all registrations:', error);
+        console.error('Error exporting all:', error);
         alert('Failed to export PDF: ' + error.message);
-        
-        // Reset button on error
-        var exportBtn = document.querySelector('.export-all-btn');
-        if (exportBtn) {
-            exportBtn.disabled = false;
-            exportBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Export All as PDF';
-        }
+        const btn = document.querySelector('.export-all-btn');
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> Export All as PDF'; }
     }
 }
 
-// Export functions to global window
 window.exportToPDF = exportToPDF;
 window.exportAllRegistrations = exportAllRegistrations;
