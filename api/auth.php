@@ -80,30 +80,51 @@ function handleGet() {
  * Handle login
  */
 function handleLogin($input) {
-    if (empty($input['email']) || empty($input['password'])) {
+    $emailInput = trim((string)($input['email'] ?? ''));
+    $password = (string)($input['password'] ?? '');
+
+    if ($emailInput === '' || $password === '') {
         jsonError('Email dan password wajib diisi', 400);
     }
-    
-    $email = filter_var($input['email'], FILTER_VALIDATE_EMAIL);
+
+    $email = filter_var($emailInput, FILTER_VALIDATE_EMAIL);
     if (!$email) {
         jsonError('Email tidak valid', 400);
     }
     
-    $password = $input['password'];
-    
     $db = getDb();
     
-    // Get user from users table
-    $sql = "SELECT * FROM users WHERE email = :email";
+    // Login with email only
+    $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
     $user = $db->get($sql, ['email' => $email]);
     
     if (!$user) {
         jsonError('Email atau password salah', 401);
     }
     
-    // Verify password
-    if (!password_verify($password, $user['password'])) {
+    // Verify password (hashed first, with compatibility fallback for legacy/plaintext data)
+    $storedPassword = (string)($user['password'] ?? '');
+    $isValidPassword = password_verify($password, $storedPassword);
+    $shouldRehash = false;
+
+    if (!$isValidPassword && $storedPassword !== '' && hash_equals($storedPassword, $password)) {
+        // Legacy plaintext password in DB
+        $isValidPassword = true;
+        $shouldRehash = true;
+    }
+
+    if (!$isValidPassword) {
         jsonError('Email atau password salah', 401);
+    }
+
+    // Upgrade password hash when needed
+    if ($shouldRehash || password_needs_rehash($storedPassword, PASSWORD_DEFAULT)) {
+        try {
+            $newHash = password_hash($password, PASSWORD_DEFAULT);
+            $db->update('users', ['password' => $newHash], 'id = :id', ['id' => $user['id']]);
+        } catch (Exception $e) {
+            error_log('Failed to rehash password for user ' . $user['id'] . ': ' . $e->getMessage());
+        }
     }
     
     // Generate session token

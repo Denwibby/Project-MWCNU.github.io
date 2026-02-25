@@ -4,6 +4,12 @@
 RewriteEngine On
 RewriteBase /api/
 
+# Ensure PHP engine is enabled for API endpoints
+# Useful when a parent .htaccess/vhost disabled PHP globally.
+<IfModule mod_php.c>
+    php_flag engine on
+</IfModule>
+
 # If the request is for a real file or directory, skip rewrite
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

@@ -155,10 +155,9 @@ AddType application/javascript .js
 AddType text/css .css
 AddType application/json .json
 
-# Prevent execution of scripts in upload directories (if applicable)
-<IfModule mod_php.c>
-    php_flag engine off
-</IfModule>
+# Prevent execution of PHP scripts in uploads directory only
+# NOTE: Do not disable PHP engine globally, because API endpoints require PHP.
+RewriteRule ^uploads/.*\.php$ - [F,L,NC]
 
 # -----------------------------------------------------------------------------
 # 7. CLICKJACKING PROTECTION (Additional)

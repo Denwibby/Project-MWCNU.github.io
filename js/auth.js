@@ -3,12 +3,24 @@
 // Migrated from Supabase Auth
 // ============================================
 
-// API Base URL
-const AUTH_API_URL = window.location.origin + '/api/auth';
+// API Base URLs (clean URL + direct PHP fallback)
+const AUTH_API_URLS = [
+    window.location.origin + '/api/auth',
+    window.location.origin + '/api/auth.php'
+];
+
+// Safe JSON parser to handle non-JSON server responses (e.g. "Forbidden")
+function parseJsonSafely(text) {
+    try {
+        return { ok: true, data: JSON.parse(text) };
+    } catch (error) {
+        return { ok: false, error };
+    }
+}
 
 // Helper function for auth API requests
 async function authApiRequest(action, data = {}) {
-    const options = {
+    const requestOptions = {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -17,17 +29,35 @@ async function authApiRequest(action, data = {}) {
     
     // Add action to data
     const payload = { action, ...data };
-    options.body = JSON.stringify(payload);
+    requestOptions.body = JSON.stringify(payload);
     
     try {
-        const response = await fetch(AUTH_API_URL, options);
-        const result = await response.json();
-        
-        if (!result.success) {
-            throw new Error(result.error || result.message);
+        let lastError = null;
+
+        for (const baseUrl of AUTH_API_URLS) {
+            const response = await fetch(baseUrl, requestOptions);
+            const responseText = await response.text();
+            const parsed = parseJsonSafely(responseText);
+
+            if (!parsed.ok) {
+                lastError = new Error(
+                    `API mengembalikan respons non-JSON (HTTP ${response.status}): ` +
+                    responseText.slice(0, 120)
+                );
+                continue;
+            }
+
+            const result = parsed.data;
+
+            if (!response.ok || !result.success) {
+                lastError = new Error(result.error || result.message || `HTTP ${response.status}`);
+                continue;
+            }
+
+            return result;
         }
-        
-        return result;
+
+        throw lastError || new Error('Tidak bisa menghubungi API auth');
     } catch (error) {
         console.error('Auth API Error:', error);
         throw error;
@@ -50,7 +80,7 @@ async function loginAdmin(email, password) {
         if (result.data && result.data.token) {
             // Simpan token ke localStorage
             localStorage.setItem('auth_token', result.data.token);
-            localStorage.setItem('admin_info', JSON.stringify(result.data.admin));
+            localStorage.setItem('admin_info', JSON.stringify(result.data.user || null));
             
             // Redirect ke halaman admin
             window.location.href = 'pages/admin.html';
@@ -77,8 +107,8 @@ async function logoutAdmin() {
 
         console.log('Logout successful');
 
-        // Redirect ke halaman login
-        window.location.href = 'login.html';
+        // Redirect ke halaman login (absolute path, avoid /pages/login.html)
+        window.location.href = window.location.origin + '/login.html';
 
         return { success: true };
 
@@ -103,9 +133,29 @@ async function checkAuth() {
             return { isAuthenticated: false, session: null };
         }
 
-        // Verify token with server
-        const result = await fetch(AUTH_API_URL + '?action=check&token=' + encodeURIComponent(token));
-        const data = await result.json();
+        let data = null;
+        let lastError = null;
+
+        for (const baseUrl of AUTH_API_URLS) {
+            const response = await fetch(baseUrl + '?action=check&token=' + encodeURIComponent(token));
+            const responseText = await response.text();
+            const parsed = parseJsonSafely(responseText);
+
+            if (!parsed.ok) {
+                lastError = new Error(
+                    `Auth check menerima respons non-JSON (HTTP ${response.status}): ` +
+                    responseText.slice(0, 120)
+                );
+                continue;
+            }
+
+            data = parsed.data;
+            break;
+        }
+
+        if (!data) {
+            throw lastError || new Error('Gagal memverifikasi sesi login');
+        }
 
         if (data.success) {
             console.log('User is logged in');
@@ -132,7 +182,7 @@ async function requireAuth() {
 
         if (!authResult.isAuthenticated) {
             console.log('User not authenticated, redirecting to login.html');
-            window.location.href = '../login.html';
+            window.location.href = window.location.origin + '/login.html';
             return false;
         }
 
@@ -141,7 +191,7 @@ async function requireAuth() {
 
     } catch (error) {
         console.error('Middleware error:', error.message);
-        window.location.href = '../login.html';
+        window.location.href = window.location.origin + '/login.html';
         return false;
     }
 }

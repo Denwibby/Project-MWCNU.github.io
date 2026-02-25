@@ -192,7 +192,7 @@ async function logout() {
         console.error('Logout API error:', error);
     }
 
-    window.location.href = '../login.html';
+    window.location.href = window.location.origin + '/login.html';
 }
 
 async function checkLoginStatus() {
@@ -214,7 +214,7 @@ async function checkLoginStatus() {
 
 // UI Management
 function showLoginForm() {
-    window.location.href = '../login.html';
+    window.location.href = window.location.origin + '/login.html';
 }
 
 function showAdminPanel() {
