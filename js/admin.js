@@ -196,20 +196,9 @@ async function logout() {
 }
 
 async function checkLoginStatus() {
-    try {
-        if (typeof window.checkAuth === 'function') {
-            const authResult = await window.checkAuth();
-            if (authResult && authResult.isAuthenticated) {
-                showAdminPanel();
-                return true;
-            }
-        }
-    } catch (error) {
-        console.error('Auth check error:', error);
-    }
-
-    showLoginForm();
-    return false;
+    // Auth disabled - always show admin panel
+    showAdminPanel();
+    return true;
 }
 
 // UI Management

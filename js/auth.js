@@ -124,26 +124,10 @@ async function checkAuth() {
 }
 
 // Middleware: Cek apakah user sudah login
+// AUTH DISABLED - Always return true for development
 async function requireAuth() {
-    try {
-        console.log('Running auth middleware...');
-
-        const authResult = await checkAuth();
-
-        if (!authResult.isAuthenticated) {
-            console.log('User not authenticated, redirecting to login.html');
-            window.location.href = '../login.html';
-            return false;
-        }
-
-        console.log('User is authenticated, allowing access');
-        return true;
-
-    } catch (error) {
-        console.error('Middleware error:', error.message);
-        window.location.href = '../login.html';
-        return false;
-    }
+    console.log('Auth middleware disabled - allowing access');
+    return true;
 }
 
 // Fungsi untuk menangani form login

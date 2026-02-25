@@ -1,9 +1,7 @@
 /**
  * MWCNU Database API - MySQL Backend
- * Migrated from Supabase to MySQL
  * 
- * This file provides the same functions as before, but uses fetch()
- * to call the PHP API endpoints instead of Supabase.
+ * This file provides functions to interact with the PHP API endpoints.
  */
 
 // API Base URL - UPDATE THIS to point to your PHP API
@@ -369,8 +367,32 @@ async function ambilSemuaBlog() {
     }
 }
 
+// Fungsi untuk memperbarui blog berdasarkan ID
+async function updateBlog(id, dataBlog) {
+    try {
+        console.log('Data blog to update:', id, dataBlog);
+
+        const result = await apiRequest('/blog', {
+            method: 'PUT',
+            body: JSON.stringify({
+                id: id,
+                blog_title: dataBlog.blog_title,
+                blog_content: dataBlog.blog_content,
+                gambar_url: dataBlog.gambar_url,
+                tanggal: dataBlog.tanggal
+            })
+        });
+
+        console.log('Data blog berhasil diperbarui:', result);
+        return result.data;
+    } catch (error) {
+        console.error('Error memperbarui blog:', error);
+        throw error;
+    }
+}
+
 // Fungsi untuk mengetes koneksi ke database
-async function testKoneksiSupabase() {
+async function testKoneksiApi() {
     try {
         const result = await apiRequest('/blog');
         console.log('Koneksi MySQL berhasil!');
@@ -388,7 +410,7 @@ if (typeof module !== 'undefined' && module.exports) {
         simpanDataDariForm,
         tampilkanBlog,
         deteksiJenjang,
-        testKoneksiSupabase,
+        testKoneksiApi,
         hapusBlog,
         simpanBlog,
         ambilSemuaBlog,
@@ -399,14 +421,14 @@ if (typeof module !== 'undefined' && module.exports) {
 // Make functions available globally
 window.simpanDataDariForm = simpanDataDariForm;
 window.tampilkanBlog = tampilkanBlog;
-window.testKoneksiSupabase = testKoneksiSupabase;
+window.testKoneksiApi = testKoneksiApi;
 window.simpanBlog = simpanBlog;
 window.hapusBlog = hapusBlog;
 window.ambilSemuaBlog = ambilSemuaBlog;
 window.tampilkanDetailBlog = tampilkanDetailBlog;
 
 // Fungsi untuk mengunggah gambar ke server
-async function uploadImageToSupabase(file) {
+async function uploadImage(file) {
     try {
         if (!file) {
             throw new Error('File tidak ditemukan');
@@ -459,7 +481,7 @@ async function simpanBlogDenganGambar(judul, konten, fileGambar) {
         let gambarUrl = '';
 
         if (fileGambar) {
-            const uploadResult = await uploadImageToSupabase(fileGambar);
+            const uploadResult = await uploadImage(fileGambar);
             
             if (!uploadResult.success) {
                 throw new Error('Gagal mengunggah gambar: ' + uploadResult.error);
@@ -495,7 +517,7 @@ async function simpanBlogDenganGambar(judul, konten, fileGambar) {
 }
 
 // Fungsi untuk menghapus gambar dari server
-async function hapusGambarDariSupabase(filePath) {
+async function hapusGambar(filePath) {
     try {
         // Extract just the filename if full path is provided
         const filename = filePath.split('/').pop();
@@ -514,6 +536,12 @@ async function hapusGambarDariSupabase(filePath) {
 }
 
 // Export new functions to global window
-window.uploadImageToSupabase = uploadImageToSupabase;
+window.uploadImage = uploadImage;
 window.simpanBlogDenganGambar = simpanBlogDenganGambar;
-window.hapusGambarDariSupabase = hapusGambarDariSupabase;
+window.hapusGambar = hapusGambar;
+window.updateBlog = updateBlog;
+
+// Backward compatibility aliases (deprecated - use new names)
+window.uploadImageToSupabase = uploadImage;
+window.hapusGambarDariSupabase = hapusGambar;
+window.testKoneksiSupabase = testKoneksiApi;
