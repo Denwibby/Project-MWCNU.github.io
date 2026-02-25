@@ -172,18 +172,15 @@ AddType application/json .json
     # Note: This is a basic check, X-Frame-Options header is more reliable
 </IfModule>
 
-# -----------------------------------------------------------------------------
-# 8. CROSS-ORIGIN RESOURCE SHARING (CORS) - Restrictive Default
-# Default restrictive CORS policy, bisa di-override di subdirectories
+# ----------------------------------------------------------------------------- 
+# 8. CROSS-ORIGIN RESOURCE SHARING (CORS)
+# Note: CORS dikelola secara dinamis di api/config.php untuk fleksibilitas
+# - Development: localhost:3000, localhost:8080
+# - Production: mwcnutanggulangin.com, www.mwcnutanggulangin.com
 # -----------------------------------------------------------------------------
 
-<IfModule mod_headers.c>
-    # Default: Same-origin only
-    Header always set Access-Control-Allow-Origin "same-origin"
-    
-    # Remove potentially dangerous CORS headers
-    Header always unset Access-Control-Allow-Credentials
-</IfModule>
+# Jangan atur CORS di .htaccess karena API memerlukan origin dinamis
+# biarkan api/config.php mengelolanya
 
 # =============================================================================
 # END OF SECURITY HARDENING CONFIGURATION

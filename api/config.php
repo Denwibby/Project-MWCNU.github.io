@@ -41,11 +41,50 @@ function jsonSuccess($message, $data = null) {
     jsonResponse($response);
 }
 
-// CORS headers (allow cross-origin requests)
+// CORS headers (secure configuration)
+// Daftar domain yang diizinkan mengakses API
 function setCorsHeaders() {
-    header('Access-Control-Allow-Origin: *');
+    // Dapatkan origin dari request
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    
+    // Daftar domain yang diizinkan (sesuaikan dengan domain Anda)
+    $allowedOrigins = [
+        'https://mwcnutanggulangin.com',
+        'https://www.mwcnutanggulangin.com',
+        'http://localhost',
+        'http://localhost:3000',
+        'http://localhost:8080',
+    ];
+    
+    // Periksa apakah origin ada dalam daftar yang diizinkan
+    if (in_array($origin, $allowedOrigins)) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+        header('Access-Control-Allow-Credentials: true');
+    } else {
+        // Jika origin tidak diizinkan, coba cek berdasarkan prefix (untuk subdomain)
+        $found = false;
+        foreach ($allowedOrigins as $allowed) {
+            if (strpos($origin, $allowed) === 0 || $allowed === '*') {
+                $found = true;
+                if ($allowed !== '*') {
+                    header('Access-Control-Allow-Origin: ' . $origin);
+                    header('Access-Control-Allow-Credentials: true');
+                } else {
+                    header('Access-Control-Allow-Origin: *');
+                }
+                break;
+            }
+        }
+        
+        // Jika tidak ditemukan, tetap izinkan tapi tanpa credentials
+        if (!$found) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+        }
+    }
+    
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Max-Age: 86400'); // Cache preflight request for 24 hours
     
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(200);
