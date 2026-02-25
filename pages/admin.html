@@ -778,6 +778,18 @@
 
                 <section class="analytics-section">
                     <h3><i class="fas fa-chart-line fa-icon-green"></i> Registration Overview</h3>
+                    <div class="filter-container" style="margin-bottom: 20px; padding: 15px;">
+                        <label for="overview-jenjang-filter" style="font-weight: 600; color: #333; margin-right: 10px;">
+                            <i class="fas fa-filter"></i> Filter by Jenjang:
+                        </label>
+                        <select id="overview-jenjang-filter" style="padding: 8px 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95em; background: white; min-width: 150px;">
+                            <option value="all">All Jenjang</option>
+                            <option value="tk">TK</option>
+                            <option value="sd">SD</option>
+                            <option value="mts">MTs</option>
+                            <option value="smk">SMK</option>
+                        </select>
+                    </div>
                     <div class="chart-container">
                         <canvas id="registrationChart"></canvas>
                     </div>
@@ -925,14 +937,111 @@
 
     <script>
         let registrationChart = null;
+        let cachedRegistrations = null;
 
-        function initRegistrationChart(data = null) {
+        // Color scheme for each jenjang
+        const jenjangColors = {
+            all: { border: '#4CAF50', bg: 'rgba(76, 175, 80, 0.1)', point: '#4CAF50' },
+            tk: { border: '#9C27B0', bg: 'rgba(156, 39, 176, 0.1)', point: '#9C27B0' },
+            sd: { border: '#2196F3', bg: 'rgba(33, 150, 243, 0.1)', point: '#2196F3' },
+            mts: { border: '#FF9800', bg: 'rgba(255, 152, 0, 0.1)', point: '#FF9800' },
+            smk: { border: '#F44336', bg: 'rgba(244, 67, 54, 0.1)', point: '#F44336' }
+        };
+
+        // Function to normalize jenjang values
+        function normalizeJenjang(value) {
+            const raw = (value || '').toString().trim().toLowerCase();
+            if (!raw) return '';
+            if (raw.includes('smk')) return 'smk';
+            if (raw.includes('mts') || raw.includes('tsanawiyah')) return 'mts';
+            if (raw.includes('sd') || raw.includes('dasar')) return 'sd';
+            if (raw.includes('tk') || raw.includes('kanak')) return 'tk';
+            return '';
+        }
+
+        // Function to get weekly data from registrations based on jenjang
+        function getWeeklyDataFromRegistrations(registrations, jenjang) {
+            // Initialize counts for each day of the week (Sun-Sat)
+            const dailyCounts = [0, 0, 0, 0, 0, 0, 0];
+            
+            // Filter registrations by jenjang if not 'all'
+            let filteredRegs = registrations;
+            if (jenjang && jenjang !== 'all') {
+                filteredRegs = registrations.filter(reg => {
+                    const normalized = normalizeJenjang(reg.jenjang);
+                    return normalized === jenjang;
+                });
+            }
+            
+            console.log('Filtered registrations for', jenjang, ':', filteredRegs.length);
+            
+            // Count registrations per day (using create_at from database)
+            filteredRegs.forEach(reg => {
+                // Try both create_at and created_at field names
+                const dateStr = reg.create_at || reg.created_at;
+                if (dateStr) {
+                    const regDate = new Date(dateStr);
+                    if (!isNaN(regDate.getTime())) {
+                        const dayOfWeek = regDate.getDay();
+                        dailyCounts[dayOfWeek]++;
+                    }
+                }
+            });
+            
+            console.log('Daily counts:', dailyCounts);
+            
+            return { data: dailyCounts };
+        }
+
+        // Fetch registrations from API
+        async function fetchRegistrations() {
+            if (cachedRegistrations) {
+                return cachedRegistrations;
+            }
+            
+            try {
+                const response = await fetch(window.location.origin + '/api/pendaftaran');
+                const result = await response.json();
+                
+                if (result.success) {
+                    cachedRegistrations = result.data || [];
+                    console.log('Fetched registrations:', cachedRegistrations.length);
+                    return cachedRegistrations;
+                } else {
+                    console.error('API error:', result.error);
+                    return [];
+                }
+            } catch (error) {
+                console.error('Error fetching registrations:', error);
+                return [];
+            }
+        }
+
+        // Initialize chart with filter support
+        async function initRegistrationChart(jenjang = 'all') {
             const ctx = document.getElementById('registrationChart');
             if (!ctx) return;
 
-            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            const defaultData = [12, 19, 8, 15, 22, 10, 14];
-            const chartData = data || defaultData;
+            const colors = jenjangColors[jenjang] || jenjangColors.all;
+            let chartData;
+            let chartLabel;
+
+            // Fetch registrations from API
+            const registrations = await fetchRegistrations();
+            const weeklyData = getWeeklyDataFromRegistrations(registrations, jenjang);
+            chartData = weeklyData.data;
+            
+            // Calculate total for display
+            const total = chartData.reduce((a, b) => a + b, 0);
+            console.log('Chart data for', jenjang, ':', chartData, 'Total:', total);
+            
+            // Set label based on jenjang
+            if (jenjang === 'all') {
+                chartLabel = `Weekly Registrations (All) - Total: ${registrations.length}`;
+            } else {
+                const filteredCount = registrations.filter(reg => normalizeJenjang(reg.jenjang) === jenjang).length;
+                chartLabel = `Weekly Registrations (${jenjang.toUpperCase()}) - Total: ${filteredCount}`;
+            }
 
             if (registrationChart) {
                 registrationChart.destroy();
@@ -941,16 +1050,16 @@
             registrationChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
                     datasets: [{
-                        label: 'Weekly Registrations',
+                        label: chartLabel,
                         data: chartData,
-                        borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderColor: colors.border,
+                        backgroundColor: colors.bg,
                         borderWidth: 3,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#4CAF50',
+                        pointBackgroundColor: colors.point,
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointRadius: 5,
@@ -986,6 +1095,19 @@
                 }
             });
         }
+
+        // Handle filter change
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterSelect = document.getElementById('overview-jenjang-filter');
+            if (filterSelect) {
+                filterSelect.addEventListener('change', function() {
+                    const selectedJenjang = this.value;
+                    // Clear cache to ensure fresh data
+                    cachedRegistrations = null;
+                    initRegistrationChart(selectedJenjang);
+                });
+            }
+        });
 
         (async function() {
             const isAuthenticated = await requireAuth();
