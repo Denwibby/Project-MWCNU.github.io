@@ -1,25 +1,53 @@
 /**
  * MWCNU Database API - MySQL Backend
  * 
- * This file provides functions to interact with the PHP API endpoints.
+ * This file provides centralized functions to interact with the PHP API endpoints.
+ * All API requests should use the apiRequest function from this file.
  */
 
-// API Base URL - UPDATE THIS to point to your PHP API
+// API Base URL
 const API_BASE_URL = window.location.origin + '/api';
 
-// Helper function for making API requests
-async function apiRequest(endpoint, options = {}) {
-    const defaultOptions = {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    };
+/**
+ * Centralized API request function
+ * Supports both old signature (endpoint, options) and new signature (endpoint, method, data)
+ * @param {string} endpoint - API endpoint (e.g., '/pendaftaran')
+ * @param {string|object} methodOrOptions - HTTP method or options object
+ * @param {object} data - Data to send (for POST, PUT)
+ * @returns {Promise<object>} - API response data
+ */
+async function apiRequest(endpoint, methodOrOptions = 'GET', data = null) {
+    let options;
     
-    const config = { ...defaultOptions, ...options };
+    // Support both old and new signature
+    if (typeof methodOrOptions === 'object' && methodOrOptions !== null) {
+        // Old signature: apiRequest(endpoint, { method: 'POST', body: '...' })
+        options = {
+            method: methodOrOptions.method || 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+        if (methodOrOptions.body) {
+            options.body = methodOrOptions.body;
+        }
+    } else {
+        // New signature: apiRequest(endpoint, 'POST', data)
+        const method = methodOrOptions || 'GET';
+        options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        };
+        // Add body for POST/PUT requests
+        if (data && (method === 'POST' || method === 'PUT')) {
+            options.body = JSON.stringify(data);
+        }
+    }
     
     try {
-        const response = await fetch(API_BASE_URL + endpoint, config);
+        const response = await fetch(API_BASE_URL + endpoint, options);
         const result = await response.json();
         
         if (!result.success) {
@@ -32,6 +60,9 @@ async function apiRequest(endpoint, options = {}) {
         throw error;
     }
 }
+
+// Export for use in other files
+window.apiRequest = apiRequest;
 
 function normalizeJenjangForDb(value) {
     const raw = (value || '').toString().trim().toLowerCase();
@@ -540,8 +571,3 @@ window.uploadImage = uploadImage;
 window.simpanBlogDenganGambar = simpanBlogDenganGambar;
 window.hapusGambar = hapusGambar;
 window.updateBlog = updateBlog;
-
-// Backward compatibility aliases (deprecated - use new names)
-window.uploadImageToSupabase = uploadImage;
-window.hapusGambarDariSupabase = hapusGambar;
-window.testKoneksiSupabase = testKoneksiApi;
