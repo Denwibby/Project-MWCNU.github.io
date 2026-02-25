@@ -9,6 +9,12 @@ require_once __DIR__ . '/db_connect.php';
 
 setCorsHeaders();
 
+// Start session so registration can use authenticated user_id when available
+if (session_status() === PHP_SESSION_NONE) {
+    session_name(SESSION_NAME);
+    session_start();
+}
+
 // Get request method
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -86,9 +92,13 @@ function handlePost() {
             jsonError("Field $field wajib diisi", 400);
         }
     }
+
+    // Resolve a valid users.id to satisfy students.user_id foreign key.
+    $userId = resolveRegistrationUserId($db, $input);
     
     // Map fields to database columns
     $data = [
+        'user_id' => $userId,
         'nama_lengkap' => $input['nama_lengkap'],
         'tempat_lahir' => $input['tempat_lahir'] ?? '',
         'tanggal_lahir' => $input['tanggal_lahir'] ?? null,
@@ -115,6 +125,112 @@ function handlePost() {
     } catch (Exception $e) {
         jsonError('Gagal menyimpan pendaftaran: ' . $e->getMessage(), 500);
     }
+}
+
+/**
+ * Resolve user_id for new student registration.
+ *
+ * Priority:
+ * 1) user_id from payload (if valid)
+ * 2) logged-in session user_id
+ * 3) existing user by parent email
+ * 4) auto-create a "user" account for applicant
+ */
+function resolveRegistrationUserId($db, $input) {
+    $payloadUserId = isset($input['user_id']) ? (int)$input['user_id'] : 0;
+    if ($payloadUserId > 0) {
+        $existing = $db->get(
+            "SELECT id FROM users WHERE id = :id LIMIT 1",
+            ['id' => $payloadUserId]
+        );
+        if ($existing) {
+            return (int)$existing['id'];
+        }
+    }
+
+    $sessionUserId = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+    if ($sessionUserId > 0) {
+        $existing = $db->get(
+            "SELECT id FROM users WHERE id = :id LIMIT 1",
+            ['id' => $sessionUserId]
+        );
+        if ($existing) {
+            return (int)$existing['id'];
+        }
+    }
+
+    $emailOrtu = trim((string)($input['email_ortu'] ?? ''));
+    if ($emailOrtu !== '' && filter_var($emailOrtu, FILTER_VALIDATE_EMAIL)) {
+        $existingByEmail = $db->get(
+            "SELECT id FROM users WHERE email = :email ORDER BY id ASC LIMIT 1",
+            ['email' => $emailOrtu]
+        );
+        if ($existingByEmail) {
+            return (int)$existingByEmail['id'];
+        }
+    }
+
+    return createApplicantUser($db, $input, $emailOrtu);
+}
+
+/**
+ * Create a lightweight account for public registration to satisfy FK integrity.
+ */
+function createApplicantUser($db, $input, $emailOrtu) {
+    $nama = trim((string)($input['nama_lengkap'] ?? 'Pendaftar'));
+    if ($nama === '') {
+        $nama = 'Pendaftar';
+    }
+
+    $baseUsername = buildUsernameBase($nama, (string)($input['no_identitas'] ?? ''));
+    $username = ensureUniqueUsername($db, $baseUsername);
+
+    $email = ($emailOrtu !== '' && filter_var($emailOrtu, FILTER_VALIDATE_EMAIL))
+        ? $emailOrtu
+        : ($username . '+' . time() . '@mwcnu.local');
+
+    $passwordHash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT);
+
+    return (int)$db->insert('users', [
+        'nama' => $nama,
+        'username' => $username,
+        'password' => $passwordHash,
+        'email' => $email,
+        'role' => 'user'
+    ]);
+}
+
+function buildUsernameBase($nama, $noIdentitas) {
+    $cleanName = preg_replace('/[^a-zA-Z0-9]+/', '', strtolower($nama));
+    if ($cleanName === '') {
+        $cleanName = 'pendaftar';
+    }
+
+    $digits = preg_replace('/\D+/', '', (string)$noIdentitas);
+    if ($digits !== '') {
+        $cleanName .= substr($digits, -4);
+    }
+
+    return substr($cleanName, 0, 40);
+}
+
+function ensureUniqueUsername($db, $baseUsername) {
+    $candidate = $baseUsername;
+
+    for ($attempt = 0; $attempt < 20; $attempt++) {
+        $exists = $db->get(
+            "SELECT id FROM users WHERE username = :username LIMIT 1",
+            ['username' => $candidate]
+        );
+        if (!$exists) {
+            return $candidate;
+        }
+
+        $suffix = str_pad((string)random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        $candidate = substr($baseUsername, 0, 46) . $suffix;
+    }
+
+    return 'pendaftar' . bin2hex(random_bytes(4));
 }
 
 /**
