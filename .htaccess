@@ -46,7 +46,7 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     # Mengontrol resource yang boleh di-load oleh browser
     # default-src 'self' = hanya resource dari domain sendiri yang diperbolehkan
     # Catatan: Sesuaikan policy ini jika website menggunakan CDN/external resources
-    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https:; frame-ancestors 'self';"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' https:; frame-ancestors 'self';"
     
     # Permissions-Policy (formerly Feature-Policy)
     # Mengontrol akses ke browser features seperti camera, microphone, geolocation
@@ -171,7 +171,7 @@ RewriteRule ^uploads/.*\.php$ - [F,L,NC]
     # Note: This is a basic check, X-Frame-Options header is more reliable
 </IfModule>
 
-# ----------------------------------------------------------------------------- 
+# -----------------------------------------------------------------------------
 # 8. CROSS-ORIGIN RESOURCE SHARING (CORS)
 # Note: CORS dikelola secara dinamis di api/config.php untuk fleksibilitas
 # - Development: localhost:3000, localhost:8080

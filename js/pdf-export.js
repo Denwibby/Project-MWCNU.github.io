@@ -14,18 +14,55 @@ async function apiRequest(endpoint, options = {}) {
     const config = { ...defaultOptions, ...options };
     const API_BASE_URL = window.location.origin + '/api';
     
+    console.log('API Request:', API_BASE_URL + endpoint);
+    
     try {
         const response = await fetch(API_BASE_URL + endpoint, config);
-        const result = await response.json();
         
-        if (!result.success) {
-            throw new Error(result.error || result.message);
+        console.log('Response status:', response.status);
+        
+        // Check if response is OK
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('HTTP Error:', response.status, errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        // Check if result has success property and handle errors
+        if (result === null || result === undefined) {
+            throw new Error('Empty response from server');
+        }
+        
+        if (result.success === false) {
+            throw new Error(result.error || result.message || 'Unknown API error');
+        }
+        
+        // If no success property but has data, return it (backward compatibility)
+        if (result.success === undefined && result.data !== undefined) {
+            return result;
         }
         
         return result;
     } catch (error) {
         console.error('API Request Error:', error);
         throw error;
+    }
+}
+
+// Get jsPDF - handle both UMD and global namespace
+function getJsPDF() {
+    // Try different ways to access jsPDF
+    if (window.jspdf && window.jspdf.jsPDF) {
+        return window.jspdf.jsPDF;
+    } else if (window.jspdf) {
+        return window.jspdf;
+    } else if (window.jsPDF) {
+        return window.jsPDF;
+    } else {
+        throw new Error('jsPDF library not loaded. Please refresh the page.');
     }
 }
 
@@ -42,7 +79,7 @@ async function exportToPDF(registrationId) {
         }
 
         // Create PDF
-        const { jsPDF } = window.jspdf;
+        const jsPDF = getJsPDF();
         const doc = new jsPDF();
 
         // Add header
@@ -103,7 +140,7 @@ async function exportToPDF(registrationId) {
 
     } catch (error) {
         console.error('Error exporting PDF:', error);
-        alert('Failed to export PDF. Please try again.');
+        alert('Failed to export PDF: ' + error.message);
     }
 }
 
@@ -121,13 +158,15 @@ async function exportAllRegistrations() {
         var result = await apiRequest('/pendaftaran');
         var registrations = result.data || [];
 
+        console.log('Registrations fetched:', registrations.length);
+
         if (registrations.length === 0) {
             alert('No registrations found to export');
             return;
         }
 
         // Create PDF with all registrations
-        var jsPDF = window.jspdf.jsPDF;
+        var jsPDF = getJsPDF();
         var doc = new jsPDF();
 
         // Add header
@@ -232,7 +271,7 @@ async function exportAllRegistrations() {
 
     } catch (error) {
         console.error('Error exporting all registrations:', error);
-        alert('Failed to export PDF. Please try again.');
+        alert('Failed to export PDF: ' + error.message);
         
         // Reset button on error
         var exportBtn = document.querySelector('.export-all-btn');

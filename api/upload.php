@@ -1,7 +1,8 @@
 <?php
 /**
  * Upload API
- * Replacing Supabase Storage with local filesystem + MySQL metadata
+ * Replacing Supabase Storage with local filesystem
+ * Note: Image metadata is stored in blogs table (gambar_url field)
  */
 
 require_once __DIR__ . '/config.php';
@@ -67,29 +68,10 @@ function handleUpload() {
         jsonError('Gagal menyimpan file ke server', 500);
     }
 
-    $uploadedBy = null;
-    if (session_status() === PHP_SESSION_NONE) {
-        session_name(SESSION_NAME);
-        session_start();
-    }
-    if (isset($_SESSION['admin_id'])) {
-        $uploadedBy = (int)$_SESSION['admin_id'];
-    }
-
-    $db = getDb();
-    try {
-        $db->insert('images', [
-            'file_name' => $fileName,
-            'file_path' => '/uploads/' . $fileName,
-            'file_type' => $mimeType,
-            'file_size' => (int)$file['size'],
-            'uploaded_by' => $uploadedBy
-        ]);
-    } catch (Exception $e) {
-        @unlink($destination);
-        jsonError('Gagal menyimpan metadata file: ' . $e->getMessage(), 500);
-    }
-
+    // Catatan: Tidak perlu menyimpan metadata ke database karena:
+    // - Gambar blog disimpan di tabel 'blogs' pada kolom 'gambar_url'
+    // - File disimpan di folder /uploads/ secara langsung
+    
     jsonSuccess('File berhasil diunggah', [
         'publicUrl' => '/uploads/' . $fileName,
         'filePath' => $fileName,
@@ -117,13 +99,6 @@ function handleDelete() {
 
     if (file_exists($fullPath) && !unlink($fullPath)) {
         jsonError('Gagal menghapus file dari server', 500);
-    }
-
-    $db = getDb();
-    try {
-        $db->delete('images', 'file_name = :file_name', ['file_name' => $fileName]);
-    } catch (Exception $e) {
-        jsonError('Gagal menghapus metadata file: ' . $e->getMessage(), 500);
     }
 
     jsonSuccess('File berhasil dihapus');
