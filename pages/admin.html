@@ -1223,7 +1223,7 @@
             });
         });
 
-        async function handleBlogFormSubmit(event) {
+async function handleBlogFormSubmit(event) {
             event.preventDefault();
             const title = document.getElementById('blog-title').value;
             const content = document.getElementById('blog-content').value;
@@ -1243,7 +1243,7 @@
                 let finalImageUrl = imageUrl;
                 
                 if (imageFileInput && imageFileInput.files && imageFileInput.files[0]) {
-                    const uploadResult = await uploadImageToSupabase(imageFileInput.files[0]);
+                    const uploadResult = await uploadImage(imageFileInput.files[0]);
                     
                     if (uploadResult.success) {
                         finalImageUrl = uploadResult.publicUrl;
@@ -1385,7 +1385,7 @@
             document.body.classList.remove('modal-open');
         });
 
-        document.getElementById('edit-modal-save').addEventListener('click', async function() {
+document.getElementById('edit-modal-save').addEventListener('click', async function() {
             const id = document.getElementById('edit-blog-id').value;
             const title = document.getElementById('edit-blog-title').value;
             const content = document.getElementById('edit-blog-content').value;
@@ -1405,7 +1405,7 @@
                 let finalImageUrl = imageUrl;
                 
                 if (imageFileInput && imageFileInput.files && imageFileInput.files[0]) {
-                    const uploadResult = await uploadImageToSupabase(imageFileInput.files[0]);
+                    const uploadResult = await uploadImage(imageFileInput.files[0]);
                     
                     if (uploadResult.success) {
                         finalImageUrl = uploadResult.publicUrl;

@@ -82,6 +82,23 @@ CREATE TABLE `users` (
   `role` enum('admin','user') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `sessions`
+--
+
+CREATE TABLE `sessions` (
+  `id` varchar(64) NOT NULL PRIMARY KEY,
+  `user_id` bigint(20) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  KEY `fk_session_user` (`user_id`),
+  CONSTRAINT `fk_session_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -128,6 +145,13 @@ ALTER TABLE `students`
 --
 ALTER TABLE `users`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- Sample data untuk user admin (password: admin123)
+-- Password di-hash dengan password_hash()
+--
+INSERT INTO `users` (`id`, `nama`, `username`, `password`, `email`, `role`) VALUES
+(1, 'Administrator', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin@mwcnutanggulangin.com', 'admin');
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
