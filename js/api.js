@@ -434,6 +434,98 @@ async function testKoneksiApi() {
     }
 }
 
+// Fungsi untuk menampilkan berita terbaru di sidebar blog-detail
+async function tampilkanBeritaTerbaru() {
+    const popularList = document.querySelector('#popular-list');
+    if (!popularList) {
+        console.warn('Elemen #popular-list tidak ditemukan');
+        return;
+    }
+
+    const fallbackImagePath = window.location.pathname.includes('/pages/')
+        ? '../assets/images/nu-logo.png'
+        : 'assets/images/nu-logo.png';
+
+    function formatTanggalIndonesia(value) {
+        if (!value) return '-';
+        return new Date(value).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    function ringkasJudul(text, maxLength = 50) {
+        const raw = (text || '').trim();
+        if (raw.length <= maxLength) return raw;
+        return `${raw.slice(0, maxLength).trimEnd()}...`;
+    }
+
+    try {
+        const result = await apiRequest('/blog');
+        const posts = result.data || [];
+
+        // Clear existing content
+        popularList.innerHTML = '';
+
+        if (!posts || posts.length === 0) {
+            // Tidak ada berita sama sekali, tampilkan 1 placeholder
+            popularList.innerHTML = `
+                <li class="popular-item">
+                    <a href="blog.html">
+                        <img src="${fallbackImagePath}" alt="Thumbnail berita">
+                        <div>
+                            <p class="popular-item-title">Belum ada berita</p>
+                            <p class="popular-item-date">-</p>
+                        </div>
+                    </a>
+                </li>
+            `;
+            return;
+        }
+
+        // Tampilkan 1-3 berita terbaru (maksimal 3)
+        const latestPosts = posts.slice(0, 3);
+
+        latestPosts.forEach(post => {
+            const item = document.createElement('li');
+            item.className = 'popular-item';
+            
+            const tanggal = formatTanggalIndonesia(post.tanggal);
+            const judul = post.blog_title || 'Tanpa Judul';
+            const gambar = post.gambar_url && post.gambar_url.trim() ? post.gambar_url : fallbackImagePath;
+            const detailUrl = `blog-detail.html?id=${encodeURIComponent(post.id)}`;
+
+            item.innerHTML = `
+                <a href="${detailUrl}">
+                    <img src="${gambar}" alt="${judul}" onerror="this.src='${fallbackImagePath}'">
+                    <div>
+                        <p class="popular-item-title">${ringkasJudul(judul)}</p>
+                        <p class="popular-item-date">${tanggal}</p>
+                    </div>
+                </a>
+            `;
+
+            popularList.appendChild(item);
+        });
+
+    } catch (error) {
+        console.error('Terjadi kesalahan saat menampilkan berita terbaru:', error);
+        // Tampilkan pesan error atau placeholder
+        popularList.innerHTML = `
+            <li class="popular-item">
+                <a href="blog.html">
+                    <img src="${fallbackImagePath}" alt="Thumbnail berita">
+                    <div>
+                        <p class="popular-item-title">Gagal memuat berita</p>
+                        <p class="popular-item-date">-</p>
+                    </div>
+                </a>
+            </li>
+        `;
+    }
+}
+
 // Export functions for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -445,7 +537,8 @@ if (typeof module !== 'undefined' && module.exports) {
         hapusBlog,
         simpanBlog,
         ambilSemuaBlog,
-        tampilkanDetailBlog
+        tampilkanDetailBlog,
+        tampilkanBeritaTerbaru
     };
 }
 
@@ -457,6 +550,7 @@ window.simpanBlog = simpanBlog;
 window.hapusBlog = hapusBlog;
 window.ambilSemuaBlog = ambilSemuaBlog;
 window.tampilkanDetailBlog = tampilkanDetailBlog;
+window.tampilkanBeritaTerbaru = tampilkanBeritaTerbaru;
 
 // Fungsi untuk mengunggah gambar ke server
 async function uploadImage(file) {

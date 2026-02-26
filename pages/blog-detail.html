@@ -507,7 +507,7 @@
 
             <aside class="detail-sidebar" aria-label="Berita populer">
                 <div class="detail-sidebar-card">
-                    <h2 class="detail-sidebar-title"><i class="far fa-newspaper"></i> Berita Populer</h2>
+<h2 class="detail-sidebar-title"><i class="far fa-newspaper"></i> Berita Terbaru</h2>
                     <ul id="popular-list" class="popular-list">
                         <li class="popular-item">
                             <a href="blog.html">
@@ -599,13 +599,20 @@
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
-    <script>
+<script>
         // Load blog detail when page loads
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof tampilkanDetailBlog === 'function') {
                 tampilkanDetailBlog();
             } else {
                 console.error('Fungsi tampilkanDetailBlog tidak ditemukan');
+            }
+            
+            // Load berita terbaru di sidebar
+            if (typeof tampilkanBeritaTerbaru === 'function') {
+                tampilkanBeritaTerbaru();
+            } else {
+                console.error('Fungsi tampilkanBeritaTerbaru tidak ditemukan');
             }
         });
     </script>

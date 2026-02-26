@@ -1,9 +1,18 @@
 # =============================================================================
 # SECURITY HARDENING CONFIGURATION
-# Website: MWCNU (Majelis Wakil Cabang Nahdlatul Ulama)
+# Website: MWCNU (Majelis Wakil Cabin Nahdlatul Ulama)
 # Generated: Security Hardening based on Nikto Scan Results
 # Server: Apache/LiteSpeed Compatible
 # =============================================================================
+
+# -----------------------------------------------------------------------------
+# PHP UPLOAD SETTINGS
+# Mengatur batas maksimal upload file ke 5MB
+# -----------------------------------------------------------------------------
+php_value upload_max_filesize 5M
+php_value post_max_size 5M
+php_value max_execution_time 300
+php_value max_input_time 300
 
 # -----------------------------------------------------------------------------
 # 1. FORCE HTTPS REDIRECT (HTTP to HTTPS)
