@@ -485,7 +485,7 @@
         <div class="detail-layout">
             <article class="detail-main">
                 <header class="detail-head">
-                <h1 id="detail-title" class="detail-title">Memuat judul blog...</h1>
+                    <h1 id="detail-title" class="detail-title">Memuat judul blog...</h1>
                     <div class="detail-meta">
                         <span class="detail-meta-item"><i class="far fa-calendar-alt"></i> <span id="detail-date">-</span></span>
                         <span class="detail-meta-item"><i class="far fa-user"></i> <span>Tim MWCNU</span></span>
@@ -507,7 +507,7 @@
 
             <aside class="detail-sidebar" aria-label="Berita populer">
                 <div class="detail-sidebar-card">
-<h2 class="detail-sidebar-title"><i class="far fa-newspaper"></i> Berita Terbaru</h2>
+                    <h2 class="detail-sidebar-title"><i class="far fa-newspaper"></i> Berita Terbaru</h2>
                     <ul id="popular-list" class="popular-list">
                         <li class="popular-item">
                             <a href="blog.html">
@@ -528,9 +528,9 @@
         <div class="detail-share-inner">
             <p class="detail-share-label">Bagikan Berita Ini:</p>
             <div class="detail-share-actions">
-                <a id="share-facebook" href="#" aria-label="Bagikan ke Facebook"><i class="fab fa-facebook-f"></i></a>
-                <a id="share-twitter" href="#" aria-label="Bagikan ke X"><i class="fab fa-twitter"></i></a>
-                <a id="share-whatsapp" href="#" aria-label="Bagikan ke WhatsApp"><i class="fab fa-whatsapp"></i></a>  
+                <a id="share-facebook" href="#" aria-label="Bagikan ke Facebook" onclick="shareToFacebook()"><i class="fab fa-facebook-f"></i></a>
+                <a id="share-twitter" href="#" aria-label="Bagikan ke X" onclick="shareToTwitter()"><i class="fab fa-twitter"></i></a>
+                <a id="share-whatsapp" href="#" aria-label="Bagikan ke WhatsApp" onclick="shareToWhatsApp()"><i class="fab fa-whatsapp"></i></a>  
             </div>
         </div>
     </section>
@@ -599,7 +599,7 @@
     <script src="../js/device-detector.js"></script>
     <script src="../js/main.js"></script>
     <script src="../js/navigation.js"></script>
-<script>
+    <script>
         // Load blog detail when page loads
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof tampilkanDetailBlog === 'function') {
@@ -619,6 +619,4 @@
     <a href="https://wa.me/+6283853577035" class="floating-whatsapp" target="_blank" aria-label="Chat WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
 </body>
-
-
 </html>

@@ -336,7 +336,14 @@ async function tampilkanDetailBlog() {
             return;
         }
 
-        titleEl.textContent = post.blog_title || 'Tanpa Judul';
+titleEl.textContent = post.blog_title || 'Tanpa Judul';
+        
+        // Update breadcrumb dengan judul artikel
+        const breadcrumbCurrent = document.querySelector('#detail-breadcrumb-current');
+        if (breadcrumbCurrent) {
+            breadcrumbCurrent.textContent = post.blog_title || 'Tanpa Judul';
+        }
+        
         dateEl.textContent = formatTanggal(post.tanggal);
         imageEl.src = post.gambar_url && post.gambar_url.trim() ? post.gambar_url : fallbackImagePath;
         imageEl.alt = post.blog_title || 'Gambar blog';
@@ -346,6 +353,40 @@ async function tampilkanDetailBlog() {
         contentEl.innerHTML = renderKonten(post.blog_content);
 
         document.title = `${post.blog_title || 'Detail Blog'} - MWCNU`;
+
+        // Update share buttons dengan URL dan judul blog saat ini
+        const currentUrl = encodeURIComponent(window.location.href);
+        const shareTitle = encodeURIComponent(post.blog_title || '');
+        
+        // Dapatkan elemen tombol share
+        const facebookBtn = document.querySelector('#share-facebook');
+        const twitterBtn = document.querySelector('#share-twitter');
+        const whatsappBtn = document.querySelector('#share-whatsapp');
+        
+        // Facebook Share URL
+        const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`;
+        
+        // Twitter/X Share URL  
+        const twitterShareUrl = `https://twitter.com/intent/tweet?url=${currentUrl}&text=${shareTitle}`;
+        
+        // WhatsApp Share URL (mobile-friendly)
+        const whatsappShareText = `${shareTitle}%20-%20${currentUrl}`;
+        
+        // Update href untuk setiap tombol share
+        if (facebookBtn) {
+            facebookBtn.href = facebookShareUrl;
+            facebookBtn.target = '_blank';
+        }
+        
+        if (twitterBtn) {
+            twitterBtn.href = twitterShareUrl;
+            twitterBtn.target = '_blank';
+        }
+        
+        if (whatsappBtn) {
+            whatsappBtn.href = `https://wa.me/?text=${whatsappShareText}`;
+            whatsappBtn.target = '_blank';
+        }
     } catch (error) {
         console.error('Terjadi kesalahan saat menampilkan detail blog:', error);
         setError('Terjadi kesalahan saat memuat detail blog.');
@@ -665,3 +706,33 @@ window.uploadImage = uploadImage;
 window.simpanBlogDenganGambar = simpanBlogDenganGambar;
 window.hapusGambar = hapusGambar;
 window.updateBlog = updateBlog;
+
+// Fungsi berbagi ke Facebook
+function shareToFacebook() {
+    const currentUrl = encodeURIComponent(window.location.href);
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`;
+    window.open(facebookUrl, '_blank', 'width=600,height=400');
+}
+
+// Fungsi berbagi ke Twitter/X
+function shareToTwitter() {
+    const currentUrl = encodeURIComponent(window.location.href);
+    const titleEl = document.querySelector('#detail-title');
+    const shareTitle = encodeURIComponent(titleEl ? titleEl.textContent : '');
+    const twitterUrl = `https://twitter.com/intent/tweet?url=${currentUrl}&text=${shareTitle}`;
+    window.open(twitterUrl, '_blank', 'width=600,height=400');
+}
+
+// Fungsi berbagi ke WhatsApp
+function shareToWhatsApp() {
+    const currentUrl = encodeURIComponent(window.location.href);
+    const titleEl = document.querySelector('#detail-title');
+    const shareTitle = encodeURIComponent(titleEl ? titleEl.textContent : '');
+    const whatsappUrl = `https://wa.me/?text=${shareTitle}%20-%20${currentUrl}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+// Export fungsi berbagi ke global window
+window.shareToFacebook = shareToFacebook;
+window.shareToTwitter = shareToTwitter;
+window.shareToWhatsApp = shareToWhatsApp;
