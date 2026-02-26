@@ -77,8 +77,12 @@ function handlePost() {
         jsonError("Judul blog wajib diisi", 400);
     }
     
+    // Get admin_id from session or use default admin (1)
+    $adminId = 1; // Default to admin user
+    
     // Map fields to database columns
     $data = [
+        'admin_id' => $adminId,
         'blog_title' => $input['blog_title'],
         'blog_content' => $input['blog_content'] ?? '',
         'gambar_url' => $input['gambar_url'] ?? '',
@@ -94,8 +98,8 @@ function handlePost() {
 }
 
 /**
- * Update blog post
- Handle PUT request - */
+ * Handle PUT request - Update blog post
+ */
 function handlePut() {
     $db = getDb();
     

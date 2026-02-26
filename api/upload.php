@@ -72,8 +72,13 @@ function handleUpload() {
     // - Gambar blog disimpan di tabel 'blogs' pada kolom 'gambar_url'
     // - File disimpan di folder /uploads/ secara langsung
     
+    // Get the full URL with protocol and host
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $fullUrl = $protocol . '://' . $host . '/uploads/' . $fileName;
+    
     jsonSuccess('File berhasil diunggah', [
-        'publicUrl' => '/uploads/' . $fileName,
+        'publicUrl' => $fullUrl,
         'filePath' => $fileName,
         'originalName' => $originalName
     ]);

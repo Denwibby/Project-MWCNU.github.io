@@ -377,6 +377,82 @@ function handleFilterChange() {
     renderRegistrations(filter);
 }
 
+// Handle image upload for blog posts
+async function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        await showInfoModal({
+            title: 'File Tidak Valid',
+            message: 'Silakan pilih file gambar (JPEG, PNG, GIF, atau WebP)',
+            tone: 'danger'
+        });
+        event.target.value = '';
+        return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        await showInfoModal({
+            title: 'File Terlalu Besar',
+            message: 'Ukuran file maksimal adalah 5MB',
+            tone: 'danger'
+        });
+        event.target.value = '';
+        return;
+    }
+
+    // Show preview if preview element exists
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('image-preview');
+        if (preview) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+    };
+    reader.readAsDataURL(file);
+
+    // Upload the image and store URL in blog-image input
+    try {
+        const uploadResult = await uploadImage(file);
+        
+        if (uploadResult.success) {
+            // Find the blog-image input in the same form
+            const formGroup = event.target.closest('.form-group');
+            const blogImageInput = formGroup ? formGroup.querySelector('#blog-image') : document.getElementById('blog-image');
+            
+            if (blogImageInput) {
+                blogImageInput.value = uploadResult.publicUrl;
+                // Clear the file input after successful upload to prevent double upload on form submit
+                event.target.value = '';
+                await showInfoModal({
+                    title: 'Berhasil',
+                    message: 'Gambar berhasil diunggah!',
+                    tone: 'success'
+                });
+            }
+        } else {
+            await showInfoModal({
+                title: 'Upload Gagal',
+                message: 'Gagal mengunggah gambar: ' + (uploadResult.error || 'Unknown error'),
+                tone: 'danger'
+            });
+            event.target.value = '';
+        }
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        await showInfoModal({
+            title: 'Upload Gagal',
+            message: 'Terjadi kesalahan saat mengunggah gambar.',
+            tone: 'danger'
+        });
+        event.target.value = '';
+    }
+}
+
 // Note: Realtime subscriptions removed - PHP API doesn't support realtime natively
 // To get real-time updates, you'd need to implement WebSocket or polling
 function setupRegistrationsRealtime() {
@@ -437,3 +513,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.showDeleteConfirmModal = showDeleteConfirmModal;
 window.showInfoModal = showInfoModal;
+window.handleImageUpload = handleImageUpload;
